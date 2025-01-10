@@ -10,7 +10,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.BankApp"
+        android:theme="@style/Base.Theme.BankApp"
         tools:targetApi="31">
         <activity
             android:name=".GreatingActivity"
@@ -25,5 +25,4 @@
             </intent-filter>
         </activity>
     </application>
-
 </manifest>
