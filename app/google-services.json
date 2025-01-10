@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "88029847472",
+    "firebase_url": "https://alias-b4bce-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "alias-b4bce",
+    "storage_bucket": "alias-b4bce.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:88029847472:android:c3ddfa2d27b55514fac075",
+        "android_client_info": {
+          "package_name": "com.example.alias"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDopS8s3JHZKNFKhr_3kYSX5AKzTOxfs0A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

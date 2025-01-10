@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+
+
+    <style name="Base.Theme.Alias" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:forceDarkAllowed">false</item>
+    </style>
+
+    <style name="Theme.Alias" parent="Base.Theme.Alias" />
+</resources>
