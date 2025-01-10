@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="white">#ffffff</color>
+    <color name="dely_blue">#0066ff</color>
+    <color name="keyboard_btn">#363339</color>
+    <color name="back_btn">#1e1e2d</color>
+    <color name="app_bg">#131319</color>
+    <color name="polycy_tips">#b8b8b8</color>
+    <color name="ellipse_gradient1">#500066FF</color>
+    <color name="ellipse_gradient2">#500018F1</color>
 </resources>

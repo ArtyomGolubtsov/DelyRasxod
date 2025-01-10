@@ -3,7 +3,7 @@
     <!-- Стиль для кнопок на клавиатуре -->
     <style name="CustomKeyboardButton" parent="@android:style/Widget.Button">
         <item name="android:background">@drawable/keyboard_btn_bg</item>
-        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textColor">@color/white</item>
         <item name="android:textSize">32sp</item>
         <item name="android:gravity">center</item>
         <item name="android:layout_margin">10dp</item>
@@ -17,9 +17,9 @@
         <item name="android:layout_marginHorizontal">8dp</item>
         <item name="android:textSize">40sp</item>
         <item name="android:gravity">center</item>
-        <item name="android:textColor">#ffffff</item>
+        <item name="android:textColor">@color/white</item>
         <item name="android:hint">*</item>
-        <item name="android:textColorHint">#80B8B8B8</item>
+        <item name="android:textColorHint">@color/polycy_tips</item>
         <item name="android:background">@drawable/input_pin_digit_bg</item>
     </style>
 </resources>

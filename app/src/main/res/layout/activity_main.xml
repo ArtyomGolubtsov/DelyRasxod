@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#131319"
+    android:background="@color/app_bg"
     tools:context=".MainActivity">
 
     <ImageButton
@@ -35,7 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="ДелиРасход"
-        android:textColor="#ffffff"
+        android:textColor="@color/white"
         android:textSize="32dp"
         android:textFontWeight="1000"
         app:layout_constraintStart_toStartOf="parent"

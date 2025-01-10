@@ -2,7 +2,7 @@
     android:shape="oval">
     <gradient
         android:angle="0"
-        android:startColor="#500066FF"
-        android:endColor="#500018F1"
+        android:startColor="@color/ellipse_gradient1"
+        android:endColor="@color/ellipse_gradient2"
         android:type="linear"/>
 </shape>
