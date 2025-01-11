@@ -13,7 +13,6 @@ import com.google.firebase.database.FirebaseDatabase
 
 class GreatingActivity : AppCompatActivity() {
 
-
     private lateinit var auth: FirebaseAuth
     private lateinit var database: FirebaseDatabase
     private lateinit var usersReference: DatabaseReference
@@ -22,34 +21,35 @@ class GreatingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-
-
         // Инициализация Firebase
         auth = FirebaseAuth.getInstance()
-
         database = FirebaseDatabase.getInstance() // Получаем экземпляр FirebaseDatabase
         usersReference = database.getReference("Users") // Получаем ссылку на "Users"
-
-        // Проверка пользователя на зарегестрированность)
+        FirebaseAuth.getInstance().signOut()
+        // Проверка пользователя на зарегистрированность
         val currentUser = auth.currentUser
         if (currentUser == null) {
-            setContentView(R.layout.activity_greating)
-        }
-        else
-        {
+            println("1111111111111")
+            setContentView(R.layout.activity_greating) // Устанавливаем разметку
+            setupViews() // Инициализация и настройка кнопок после установки разметки
+        } else {
+            println("222222222222222222222")
             val intent = Intent(this, EntryPINActivity::class.java)
             startActivity(intent)
+            finish() // Закрываем текущую активность, чтобы предотвратить возврат
         }
+    }
+
+    private fun setupViews() {
+        // Инициализация кнопок
+        val btnSignUp = findViewById<AppCompatButton>(R.id.btnSignUp)
+        val btnSignIn = findViewById<AppCompatButton>(R.id.btnSignIn)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-        //инициализация кнопок
-        val btnSignUp = findViewById<AppCompatButton>(R.id.btnSignUp)
-        val btnSignIn = findViewById<AppCompatButton>(R.id.btnSignIn)
-        //
 
         btnSignUp.setOnClickListener {
             val intent = Intent(this@GreatingActivity, SignUpActivity::class.java)
