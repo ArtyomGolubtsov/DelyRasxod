@@ -18,7 +18,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/person_outline/baseline_person_outline_24.xml" />
+                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/mail_outline/baseline_mail_outline_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -29,7 +29,7 @@
                         <option name="values">
                           <map>
                             <entry key="color" value="b8b8b8" />
-                            <entry key="outputName" value="ic_person_outline" />
+                            <entry key="outputName" value="ic_mail_outline" />
                             <entry key="sourceFile" value="C:\Users\1\Downloads\Path.svg" />
                           </map>
                         </option>
