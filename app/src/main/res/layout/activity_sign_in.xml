@@ -44,7 +44,7 @@
         android:paddingHorizontal="20dp">
 
         <LinearLayout
-            android:id="@+id/phoneNumberBox"
+            android:id="@+id/eMailBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -52,26 +52,26 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Номер телефона"
+                android:text="E-Mail"
                 android:textColor="@color/polycy_tips"
                 android:textSize="16sp"
-                android:labelFor="@id/phoneNumber"
-                app:layout_constraintBottom_toTopOf="@id/phoneNumber"
+                android:labelFor="@id/eMail"
+                app:layout_constraintBottom_toTopOf="@id/eMail"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <EditText
-                android:id="@+id/phoneNumber"
+                android:id="@+id/eMail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="20dp"
-                android:inputType="phone"
+                android:inputType="textEmailAddress"
                 android:textColor="@color/white"
                 app:layout_constraintTop_toBottomOf="@id/mainTitle"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:paddingBottom="20dp"
-                android:drawableLeft="@drawable/ic_phone_outline" />
+                android:drawableLeft="@drawable/ic_mail_outline" />
 
         </LinearLayout>
 
@@ -87,8 +87,8 @@
                 android:text="Пароль"
                 android:textColor="@color/polycy_tips"
                 android:textSize="16sp"
-                android:labelFor="@id/phoneNumber"
-                app:layout_constraintBottom_toTopOf="@id/phoneNumber"
+                android:labelFor="@id/eMail"
+                app:layout_constraintBottom_toTopOf="@id/eMail"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <EditText
