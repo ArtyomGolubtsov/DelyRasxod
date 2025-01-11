@@ -13,6 +13,9 @@
         android:theme="@style/Base.Theme.BankApp"
         tools:targetApi="31">
         <activity
+            android:name=".ChangePassActivity"
+            android:exported="false" />
+        <activity
             android:name=".CodeConfirmActivity"
             android:exported="false" />
         <activity

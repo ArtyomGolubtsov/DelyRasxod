@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_bg"
+    tools:context=".ChangePassActivity">
+
+    <ImageButton
+        android:id="@+id/btnGoBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:background="@null"
+        android:src="@drawable/btn_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="20dp"/>
+
+    <TextView
+        android:id="@+id/mainTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Новый пароль"
+        android:textColor="@color/white"
+        android:textSize="35sp"
+        android:textFontWeight="1000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/btnGoBack"
+        app:layout_constraintBottom_toBottomOf="@id/btnGoBack"/>
+
+    <LinearLayout
+        android:id="@+id/mainBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingHorizontal="20dp">
+
+        <LinearLayout
+            android:id="@+id/passBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Новый пароль"
+                android:textColor="@color/polycy_tips"
+                android:textSize="16sp"
+                android:labelFor="@id/pass"/>
+
+            <EditText
+                android:id="@+id/pass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="20dp"
+                android:inputType="textPassword"
+                android:textColor="@color/white"
+                android:paddingBottom="20dp"
+                android:drawableLeft="@drawable/ic_lock_outline" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/confirmPassBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Подтвердите пароль"
+                android:textColor="@color/polycy_tips"
+                android:textSize="16sp"
+                android:labelFor="@id/confirmPass"/>
+
+            <EditText
+                android:id="@+id/confirmPass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:inputType="textPassword"
+                android:textColor="@color/white"
+                android:paddingBottom="20dp"
+                android:drawableLeft="@drawable/ic_lock_outline" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Оба пароля должны совпадать"
+            android:textSize="14sp"
+            android:textFontWeight="800"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/polycy_tips" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            style="@style/BigBlueButton"
+            android:id="@+id/btnRestPass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Изменить пароль"
+            android:layout_marginTop="15dp"
+            />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
