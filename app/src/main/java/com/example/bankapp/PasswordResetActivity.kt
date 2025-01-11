@@ -8,6 +8,9 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.graphics.toColor
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.bankapp.GreatingActivity
 import com.example.bankapp.R
 import com.google.firebase.auth.FirebaseAuth
@@ -28,12 +31,18 @@ class PasswordResetActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_password_reset)
 
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
         // Инициализация Firebase Auth
         auth = FirebaseAuth.getInstance()
 
         // Инициализация UI-элементов
-        emailEditText = findViewById(R.id.phoneNumber) // Замените на актуальное id для поля email
         userNameEditText = findViewById(R.id.userName) // Поле для ввода ФИО
+        emailEditText = findViewById(R.id.eMail) // Замените на актуальное id для поля email
         btnContinue = findViewById(R.id.btnContinue)
 
         // Обработка кнопок и нажатий
