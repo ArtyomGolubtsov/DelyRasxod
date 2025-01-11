@@ -22,23 +22,34 @@ class GreatingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+
+
         // Инициализация Firebase
         auth = FirebaseAuth.getInstance()
 
         database = FirebaseDatabase.getInstance() // Получаем экземпляр FirebaseDatabase
         usersReference = database.getReference("Users") // Получаем ссылку на "Users"
 
-
-
-        setContentView(R.layout.activity_greating)
+        // Проверка пользователя на зарегестрированность)
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            setContentView(R.layout.activity_greating)
+        }
+        else
+        {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
+        //инициализация кнопок
         val btnSignUp = findViewById<AppCompatButton>(R.id.btnSignUp)
         val btnSignIn = findViewById<AppCompatButton>(R.id.btnSignIn)
+        //
 
         btnSignUp.setOnClickListener {
             val intent = Intent(this@GreatingActivity, SignUpActivity::class.java)
