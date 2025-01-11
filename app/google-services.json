@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "722795327417",
+    "firebase_url": "https://barbershopclientsdb-default-rtdb.firebaseio.com",
+    "project_id": "barbershopclientsdb",
+    "storage_bucket": "barbershopclientsdb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:722795327417:android:140f85223c56c05763d068",
+        "android_client_info": {
+          "package_name": "com.example.bankapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEg1DD00L-nv_oNUs4hW-EVpdLSSxaQS0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
