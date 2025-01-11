@@ -1,3 +1,5 @@
+package com.example.bankapp
+
 import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
