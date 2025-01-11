@@ -34,7 +34,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".EntryPINActivity"
             android:exported="false" />
     </application>
 

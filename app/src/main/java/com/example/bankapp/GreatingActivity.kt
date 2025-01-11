@@ -37,7 +37,7 @@ class GreatingActivity : AppCompatActivity() {
         }
         else
         {
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this, EntryPINActivity::class.java)
             startActivity(intent)
         }
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
