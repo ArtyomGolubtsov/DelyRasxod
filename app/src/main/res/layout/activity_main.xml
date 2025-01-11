@@ -43,19 +43,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
         <TextView
-            android:id="@+id/code_digit1"
+            android:id="@+id/PINDigit1"
             style="@style/CodeDigitTextView"
             />
         <TextView
-            android:id="@+id/code_digit2"
+            android:id="@+id/PINDigit2"
             style="@style/CodeDigitTextView"
             />
         <TextView
-            android:id="@+id/code_digit3"
+            android:id="@+id/PINDigit3"
             style="@style/CodeDigitTextView"
             />
         <TextView
-            android:id="@+id/code_digit4"
+            android:id="@+id/PINDigit4"
             style="@style/CodeDigitTextView"
             />
     </LinearLayout>
