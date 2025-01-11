@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -40,10 +41,15 @@ class SignUpActivity : AppCompatActivity() {
         val passwordEditText: EditText = findViewById(R.id.pass)
         val userNameEditText: EditText = findViewById(R.id.userName) // Поле для имени
         val agreeCheckbox: CheckBox = findViewById(R.id.iAgreeCheckbox)
+        val SignIN: TextView = findViewById(R.id.signUpLink)
 
         // Обработка кнопки возврата
         btnGoBack.setOnClickListener {
             val intent = Intent(this, GreatingActivity::class.java)
+            startActivity(intent)
+        }
+        SignIN.setOnClickListener {
+            val intent = Intent(this, SignInActivity::class.java)
             startActivity(intent)
         }
 
