@@ -11,10 +11,10 @@
         android:paddingVertical="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        android:orientation="horizontal">
 
         <LinearLayout
-            android:id="@+id/homeBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -22,11 +22,13 @@
             android:gravity="center">
 
             <ImageView
+                android:id="@+id/HomeBtn"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:src="@drawable/ic_home_outline"/>
 
             <TextView
+                android:id="@+id/HomeTxt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Главная"
@@ -37,7 +39,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/groupsBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"

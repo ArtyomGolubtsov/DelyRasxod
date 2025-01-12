@@ -85,7 +85,7 @@ class EntryPINActivity : AppCompatActivity() {
                     if (storedPin != null && storedPin == pinCode) {
                         Toast.makeText(this@EntryPINActivity, "PIN-код верный!", Toast.LENGTH_SHORT).show()
                         // Переход на новое активити (например, MainActivity)
-                        startActivity(Intent(this@EntryPINActivity, GreatingActivity::class.java))
+                        startActivity(Intent(this@EntryPINActivity, MainActivity::class.java))
                         finish() // Закрываем текущую активность
                     } else {
                         Toast.makeText(this@EntryPINActivity, "Неверный PIN-код! Попробуйте еще раз.", Toast.LENGTH_SHORT).show()

@@ -1,5 +1,6 @@
 package com.example.bankapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.TextView
@@ -102,7 +103,8 @@ class CreatePINActivity : AppCompatActivity() {
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             println("PIN-код успешно сохранен в базу данных!")
-                            // Здесь можете перейти на следующий экран или выполнить другие действия
+                            startActivity(Intent(this@CreatePINActivity, MainActivity::class.java))
+                            finish() // Закрываем текущую активность
                         } else {
                             println("Ошибка сохранения PIN-кода: ${task.exception}")
                             Toast.makeText(this, "Ошибка сохранения PIN-кода.", Toast.LENGTH_SHORT).show()
