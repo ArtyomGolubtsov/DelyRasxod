@@ -1,5 +1,6 @@
 package com.example.bankapp
 
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +27,22 @@ data class ActivityItem(
     val category: String,
     val imageResId: Int
 )
+
+class SpaceItemDecoration(private val space: Int) : RecyclerView.ItemDecoration() {
+    override fun getItemOffsets(
+        outRect: Rect,
+        view: View,
+        parent: RecyclerView,
+        state: RecyclerView.State
+    ) {
+        outRect.apply {
+            left = space
+            right = space
+            top = space
+            bottom = space
+        }
+    }
+}
 
 class ActivityAdapter(private val activityList: List<ActivityItem>) : RecyclerView.Adapter<ActivityAdapter.ActivityViewHolder>() {
 
@@ -62,12 +79,18 @@ class MainActivity : AppCompatActivity() {
         window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
         window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
 
-        //Работа с NavigationBar
-        val homeButton: ImageView = findViewById(R.id.HomeBtn)
-        homeButton.setBackgroundColor(ContextCompat.getColor(this, R.color.dely_blue)) // Замените your_color на ваш цвет
-        val homeTxt: TextView = findViewById(R.id.HomeTxt)
-        homeTxt.setBackgroundColor(ContextCompat.getColor(this, R.color.dely_blue))
-        database = FirebaseDatabase.getInstance().getReference("Activity")
+        //Работа с NavigationBar----------------------------------------------------------------
+        val homeButton: ImageView = findViewById(R.id.homeBtnIcon)
+        homeButton.setImageResource(R.drawable.ic_home_outline_active)
+        val homeTxt: TextView = findViewById(R.id.homeBtnText)
+        homeTxt.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
+
+        //val groupsBtn:
+
+
+
+        //homeButton.setImageResource(R.drawable.ic_home_outline)
+        //homeTxt.setTextColor(ContextCompat.getColor(this, R.color.polycy_tips))
         //.................................
 
 
@@ -80,6 +103,7 @@ class MainActivity : AppCompatActivity() {
         // Инициализация RecyclerView
         val recyclerView: RecyclerView = findViewById(R.id.activityList)
         recyclerView.layoutManager = LinearLayoutManager(this)
+
 
         // Пример списка активностей
         val activityList = listOf(
@@ -100,6 +124,7 @@ class MainActivity : AppCompatActivity() {
         // Установка адаптера
         val adapter = ActivityAdapter(activityList)
         recyclerView.adapter = adapter
+
 
         // Инициализация Firebase Auth и Database
         auth = FirebaseAuth.getInstance()
