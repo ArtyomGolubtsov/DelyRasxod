@@ -320,7 +320,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/contacts/baseline_contacts_24.xml" />
+                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/arrow_forward_ios/baseline_arrow_forward_ios_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -330,9 +330,9 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="b8b8b8" />
-                            <entry key="outputName" value="ic_contacts" />
-                            <entry key="sourceFile" value="C:\Users\1\Downloads\icon (1).svg" />
+                            <entry key="color" value="ffffff" />
+                            <entry key="outputName" value="ic_arrow_forward" />
+                            <entry key="sourceFile" value="C:\Users\1\Downloads\file.svg" />
                           </map>
                         </option>
                       </PersistentState>
