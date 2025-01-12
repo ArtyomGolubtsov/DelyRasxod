@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.auth.FirebaseAuth
@@ -49,7 +50,8 @@ class GreatingActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
+        window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
         btnSignUp.setOnClickListener {
             val intent = Intent(this@GreatingActivity, SignUpActivity::class.java)
             startActivity(intent)

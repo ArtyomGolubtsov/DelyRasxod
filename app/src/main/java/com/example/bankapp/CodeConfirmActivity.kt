@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.EditText
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
@@ -25,7 +26,8 @@ class CodeConfirmActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
+        window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
         codeDigit1 = findViewById(R.id.codeDigit1)
         codeDigit2 = findViewById(R.id.codeDigit2)
         codeDigit3 = findViewById(R.id.codeDigit3)
