@@ -4,10 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -57,6 +59,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+        window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
+
+        //Работа с NavigationBar
+        val homeButton: ImageView = findViewById(R.id.HomeBtn)
+        homeButton.setBackgroundColor(ContextCompat.getColor(this, R.color.dely_blue)) // Замените your_color на ваш цвет
+        val homeTxt: TextView = findViewById(R.id.HomeTxt)
+        homeTxt.setBackgroundColor(ContextCompat.getColor(this, R.color.dely_blue))
+        database = FirebaseDatabase.getInstance().getReference("Activity")
+        //.................................
+
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -70,9 +83,18 @@ class MainActivity : AppCompatActivity() {
 
         // Пример списка активностей
         val activityList = listOf(
+            ActivityItem("Активность 2", "Категория 2", R.drawable.placeholder),
+            ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
             ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder),
             ActivityItem("Активность 2", "Категория 2", R.drawable.placeholder),
-            ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder)
+            ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
+            ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder),
+                    ActivityItem("Активность 2", "Категория 2", R.drawable.placeholder),
+        ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
+        ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder),
+        ActivityItem("Активность 2", "Категория 2", R.drawable.placeholder),
+        ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
+        ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder)
         )
 
         // Установка адаптера
