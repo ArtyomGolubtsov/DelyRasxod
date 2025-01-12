@@ -16,17 +16,19 @@
         <LinearLayout
             android:id="@+id/homeBtn"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:layout_weight="1"
             android:gravity="center">
 
             <ImageView
+                android:id="@+id/homeBtnIcon"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:src="@drawable/ic_home_outline"/>
 
             <TextView
+                android:id="@+id/homeBtnText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Главная"
@@ -39,17 +41,19 @@
         <LinearLayout
             android:id="@+id/groupsBtn"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:layout_weight="1"
             android:gravity="center">
 
             <ImageView
-                android:layout_width="35dp"
-                android:layout_height="25dp"
+                android:id="@+id/groupsBtnIcon"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
                 android:src="@drawable/ic_groups_outline"/>
 
             <TextView
+                android:id="@+id/groupsBtnText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Группы"
@@ -62,17 +66,19 @@
         <LinearLayout
             android:id="@+id/contactsBtn"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:layout_weight="1"
             android:gravity="center">
 
             <ImageView
+                android:id="@+id/contactsBtnIcon"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:src="@drawable/ic_contacts"/>
 
             <TextView
+                android:id="@+id/contactsBtnText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Контакты"
@@ -85,17 +91,19 @@
         <LinearLayout
             android:id="@+id/profileBtn"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:layout_weight="1"
             android:gravity="center">
 
             <ImageView
+                android:id="@+id/profileBtnIcon"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:src="@drawable/ic_person_outline"/>
 
             <TextView
+                android:id="@+id/profileBtnText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Профиль"
