@@ -2,7 +2,6 @@ package com.example.bankapp
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
@@ -79,7 +78,7 @@ class SignInActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     // Успешный вход в систему
                     Toast.makeText(this, "Вы успешно вошли в аккаунт!", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(this, EntryPINActivity::class.java) // Переход на основной экран
+                    val intent = Intent(this, CreatePINActivity::class.java) // Переход на основной экран
                     startActivity(intent)
                     finish() // Закрыть текущую активность
                 } else {

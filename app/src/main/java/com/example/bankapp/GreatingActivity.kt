@@ -25,11 +25,10 @@ class GreatingActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance() // Получаем экземпляр FirebaseDatabase
         usersReference = database.getReference("Users") // Получаем ссылку на "Users"
-        FirebaseAuth.getInstance().signOut()
+        //FirebaseAuth.getInstance().signOut()
         // Проверка пользователя на зарегистрированность
         val currentUser = auth.currentUser
         if (currentUser == null) {
-            println("1111111111111")
             setContentView(R.layout.activity_greating) // Устанавливаем разметку
             setupViews() // Инициализация и настройка кнопок после установки разметки
         } else {

@@ -86,7 +86,7 @@ class SignUpActivity : AppCompatActivity() {
                                     // Успешная регистрация
                                     Toast.makeText(this, "Регистрация успешна", Toast.LENGTH_SHORT).show()
                                     // Переход на главный экран
-                                    val intent = Intent(this, EntryPINActivity::class.java) // Замените на ваш основной экран
+                                    val intent = Intent(this, CreatePINActivity::class.java) // Замените на ваш основной экран
                                     startActivity(intent)
                                     finish()
                                 } else {
