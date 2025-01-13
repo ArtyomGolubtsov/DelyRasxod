@@ -1,6 +1,11 @@
 package com.example.bankapp
 
+import android.app.Activity
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Rect
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -21,6 +27,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.FirebaseStorage
+import java.io.InputStream
 
 data class ActivityItem(
     val name: String,
@@ -72,6 +80,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var database: DatabaseReference
     private lateinit var auth: FirebaseAuth
 
+    companion object {
+        private const val PICK_IMAGE_REQUEST = 1
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -99,6 +112,10 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        val usersPhoto: ImageView = findViewById(R.id.userPhoto)
+        usersPhoto.setOnClickListener {
+            openGallery()
+        }
 
         // Инициализация RecyclerView
         val recyclerView: RecyclerView = findViewById(R.id.activityList)
@@ -109,16 +126,7 @@ class MainActivity : AppCompatActivity() {
         val activityList = listOf(
             ActivityItem("Активность 2", "Категория 2", R.drawable.placeholder),
             ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
-            ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder),
-            ActivityItem("Активность 2", "Категория 2", R.drawable.placeholder),
-            ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
-            ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder),
-                    ActivityItem("Активность 2", "Категория 2", R.drawable.placeholder),
-        ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
-        ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder),
-        ActivityItem("Активность 2", "Категория 2", R.drawable.placeholder),
-        ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
-        ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder)
+            ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder)
         )
 
         // Установка адаптера
@@ -137,7 +145,11 @@ class MainActivity : AppCompatActivity() {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             loadUserName(currentUser.uid)
+            loadUserPhoto(currentUser.uid)
         }
+
+
+
     }
 
     private fun loadUserName(userId: String) {
@@ -145,7 +157,7 @@ class MainActivity : AppCompatActivity() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     val userName = snapshot.getValue(String::class.java)
-                    userNameTextView.text = userName
+                    userNameTextView.text = userName ?: "Имя не найдено"
                 } else {
                     userNameTextView.text = "Имя не найдено"
                 }
@@ -155,5 +167,85 @@ class MainActivity : AppCompatActivity() {
                 userNameTextView.text = "Ошибка загрузки имени"
             }
         })
+    }
+
+    private fun loadUserPhoto(userId: String) {
+        database.child(userId).child("UserPhoto").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    val photoUrl = snapshot.getValue(String::class.java)
+                    if (photoUrl != null) {
+                        loadImageFromUrl(photoUrl)
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@MainActivity, "Ошибка загрузки фото", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+            val imageUri: Uri? = data.data
+            if (imageUri != null) {
+                loadImageFromUri(imageUri)
+            }
+        }
+    }
+
+    private fun loadImageFromUri(imageUri: Uri) {
+        try {
+            val inputStream: InputStream? = contentResolver.openInputStream(imageUri)
+            val bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
+            val usersPhoto: ImageView = findViewById(R.id.userPhoto)
+            usersPhoto.setImageBitmap(bitmap)
+            uploadImageToFirebase(imageUri) // Загружаем изображение в Firebase
+        } catch (e: Exception) {
+            Toast.makeText(this, "Ошибка загрузки изображения: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadImageFromUrl(photoUrl: String) {
+        // Загрузка изображения из URL через библиотеки на базе стандартных средств Android невозможно без сторонних инструментов.
+        // Вы можете использовать методы для загрузки изображения через HttpURLConnection или другие стандартные методы Android, если это приемлемо.
+        // В этом примере лучше всего оставить как есть или использовать библиотеку, поскольку есть ограничения на загрузку в фоновом режиме без потоков.
+        Toast.makeText(this, "Загрузка фото из URL не поддерживается без дополнительных библиотек", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun uploadImageToFirebase(uri: Uri) {
+        val userId = auth.currentUser?.uid ?: return
+        val storage = FirebaseStorage.getInstance()
+        val storageRef = storage.reference
+
+        val imageRef = storageRef.child("user_photos/$userId.jpg")
+
+        imageRef.putFile(uri)
+            .addOnSuccessListener {
+                imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                    saveUserPhotoUrlToDatabase(userId, downloadUri.toString())
+                }.addOnFailureListener {
+                    Toast.makeText(this, "Ошибка получения ссылки", Toast.LENGTH_SHORT).show()
+                }
+            }.addOnFailureListener {
+                Toast.makeText(this, "Ошибка загрузки: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun saveUserPhotoUrlToDatabase(userId: String, photoUrl: String) {
+        database.child(userId).child("UserPhoto").setValue(photoUrl)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Фото успешно загружено!", Toast.LENGTH_SHORT).show()
+            }.addOnFailureListener {
+                Toast.makeText(this, "Ошибка сохранения ссылки: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 }
