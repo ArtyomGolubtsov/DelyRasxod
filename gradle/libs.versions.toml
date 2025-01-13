@@ -12,6 +12,7 @@ constraintlayout = "2.1.4"
 gmsVersion = "4.4.2"
 bomVersion = "33.7.0"
 
+
 [libraries]
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "bomVersion" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore-ktx"}

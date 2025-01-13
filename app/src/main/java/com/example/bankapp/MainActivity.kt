@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import java.net.URL
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -29,6 +30,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import java.io.InputStream
+import java.net.HttpURLConnection
 
 data class ActivityItem(
     val name: String,
@@ -128,6 +130,9 @@ class MainActivity : AppCompatActivity() {
             ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
             ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder)
         )
+        // Использование без ресурсов
+        val spacingInPixels = 16 // укажите нужное значение в пикселях
+        recyclerView.addItemDecoration(SpaceItemDecoration(spacingInPixels))
 
         // Установка адаптера
         val adapter = ActivityAdapter(activityList)
@@ -174,7 +179,8 @@ class MainActivity : AppCompatActivity() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     val photoUrl = snapshot.getValue(String::class.java)
-                    if (photoUrl != null) {
+                    if (photoUrl != null && photoUrl.isNotEmpty()) {
+                        // Загружаем изображение по URL
                         loadImageFromUrl(photoUrl)
                     }
                 }
@@ -184,6 +190,28 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Ошибка загрузки фото", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+
+    private fun loadImageFromUrl(imageUrl: String) {
+        Thread {
+            try {
+                val url = URL(imageUrl)
+                val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+                connection.doInput = true
+                connection.connect()
+                val input: InputStream = connection.inputStream
+                val bitmap = BitmapFactory.decodeStream(input)
+                runOnUiThread {
+                    val usersPhoto: ImageView = findViewById(R.id.userPhoto)
+                    usersPhoto.setImageBitmap(bitmap)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                runOnUiThread {
+                    Toast.makeText(this@MainActivity, "Ошибка загрузки изображения: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
     }
 
     private fun openGallery() {
@@ -208,17 +236,10 @@ class MainActivity : AppCompatActivity() {
             val bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
             val usersPhoto: ImageView = findViewById(R.id.userPhoto)
             usersPhoto.setImageBitmap(bitmap)
-            uploadImageToFirebase(imageUri) // Загружаем изображение в Firebase
+            uploadImageToFirebase(imageUri)
         } catch (e: Exception) {
             Toast.makeText(this, "Ошибка загрузки изображения: ${e.message}", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun loadImageFromUrl(photoUrl: String) {
-        // Загрузка изображения из URL через библиотеки на базе стандартных средств Android невозможно без сторонних инструментов.
-        // Вы можете использовать методы для загрузки изображения через HttpURLConnection или другие стандартные методы Android, если это приемлемо.
-        // В этом примере лучше всего оставить как есть или использовать библиотеку, поскольку есть ограничения на загрузку в фоновом режиме без потоков.
-        Toast.makeText(this, "Загрузка фото из URL не поддерживается без дополнительных библиотек", Toast.LENGTH_SHORT).show()
     }
 
     private fun uploadImageToFirebase(uri: Uri) {
@@ -249,3 +270,4 @@ class MainActivity : AppCompatActivity() {
             }
     }
 }
+
