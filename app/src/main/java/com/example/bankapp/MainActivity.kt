@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import java.net.URL
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -100,8 +101,12 @@ class MainActivity : AppCompatActivity() {
         val homeTxt: TextView = findViewById(R.id.homeBtnText)
         homeTxt.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
 
-        //val groupsBtn:
-
+        val groupsBtn: LinearLayout =  findViewById(R.id.groupsBtn)
+        groupsBtn.setOnClickListener {
+            val intent = Intent(this, GroupsActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
 
 
         //homeButton.setImageResource(R.drawable.ic_home_outline)

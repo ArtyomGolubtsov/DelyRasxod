@@ -78,7 +78,7 @@
                 android:id="@+id/groupImage"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:src="none"
+                android:src="@null"
                 android:scaleType="centerCrop"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
