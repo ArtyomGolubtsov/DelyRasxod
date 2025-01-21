@@ -109,29 +109,65 @@
                 android:orientation="horizontal"
                 android:layout_marginTop="20dp">
 
-                <androidx.appcompat.widget.AppCompatButton
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/placesBtn"
                     android:layout_width="150dp"
                     android:layout_height="125dp"
                     android:layout_weight="1"
                     android:layout_marginRight="10dp"
-                    android:text="Места"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:textFontWeight="600"
-                    android:background="@drawable/recomendations_btn_bg"/>
+                    android:paddingHorizontal="10dp"
+                    android:background="@drawable/recomendations_btn_bg">
 
-                <androidx.appcompat.widget.AppCompatButton
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Места"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        android:textFontWeight="600"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"/>
+
+                    <ImageView
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:src="@drawable/ic_places_btn"
+                        android:scaleType="center"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/productsBtn"
                     android:layout_width="150dp"
                     android:layout_height="125dp"
                     android:layout_weight="1"
                     android:layout_marginLeft="10dp"
-                    android:text="Продукты"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:textFontWeight="600"
-                    android:background="@drawable/recomendations_btn_bg"/>
+                    android:paddingHorizontal="10dp"
+                    android:background="@drawable/recomendations_btn_bg">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Продукты"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        android:textFontWeight="600"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"/>
+
+                    <ImageView
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:src="@drawable/ic_products_btn"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </LinearLayout>
 
@@ -185,7 +221,6 @@
 
     </LinearLayout>
 
-
     <ImageView
         android:id="@+id/ellipse1"
         android:layout_width="400dp"
@@ -195,8 +230,7 @@
         android:elevation="-10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginStart="-150dp"
-        />
+        android:layout_marginStart="-150dp"/>
 
     <ImageView
         android:id="@+id/ellipse2"
