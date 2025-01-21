@@ -3,10 +3,17 @@
     <color name="black">#000000</color>
     <color name="white">#ffffff</color>
     <color name="dely_blue">#0066ff</color>
+    <color name="dely_grey">#1F222A</color>
     <color name="keyboard_btn">#363339</color>
     <color name="back_btn">#1e1e2d</color>
     <color name="app_bg">#131319</color>
     <color name="polycy_tips">#b8b8b8</color>
     <color name="ellipse_gradient1">#500066FF</color>
     <color name="ellipse_gradient2">#500018F1</color>
+    
+    <!-- Цвета категорий   -->
+    <color name="ctgr_family">#30B0C7</color>
+    <color name="ctgr_party">#73D700</color>
+    <color name="ctgr_event">#FF9500</color>
+    <color name="ctgr_other">#FFCC00</color>
 </resources>
