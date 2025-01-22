@@ -11,6 +11,8 @@
         <item name="android:background">@drawable/keyboard_btn_bg</item>
     </style>
 
+
+
     <!-- Стиль для окошек ввода кода -->
     <style name="CodeDigitTextView">
         <item name="android:layout_width">50dp</item>

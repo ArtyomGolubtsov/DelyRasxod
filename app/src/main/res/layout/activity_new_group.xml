@@ -177,9 +177,19 @@
                 android:textFontWeight="700"/>
 
             <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/categoryList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"/>
+
+            <ImageView
+                android:id="@+id/ellipse1"
+                android:layout_width="400dp"
+                android:layout_height="300dp"
+                android:layout_marginStart="-150dp"
+                android:elevation="-10dp"
+                android:rotation="-45"
+                android:src="@drawable/ellipse_shape" />
 
         </LinearLayout>
 
@@ -191,6 +201,7 @@
             app:layout_constraintBottom_toBottomOf="parent">
 
             <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/CancelBtn"
                 style="@style/CategoryButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -212,18 +223,6 @@
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <ImageView
-        android:id="@+id/ellipse1"
-        android:layout_width="400dp"
-        android:layout_height="300dp"
-        android:src="@drawable/ellipse_shape"
-        android:rotation="-45"
-        android:elevation="-10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginStart="-150dp"
-        />
 
     <ImageView
         android:id="@+id/ellipse2"

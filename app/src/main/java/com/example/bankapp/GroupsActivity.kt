@@ -26,6 +26,8 @@ class GroupsActivity : AppCompatActivity() {
         val btnGoBack: ImageButton = findViewById(R.id.btnGoBack)
         btnGoBack.setOnClickListener {
             onBackPressed() // Возвращает пользователя на предыдущий экран
+            finish()
+            overridePendingTransition(0, 0)
         }
 
         //Нижнее меню----------------------------------------

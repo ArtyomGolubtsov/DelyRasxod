@@ -1,7 +1,7 @@
 [versions]
 agp = "8.7.1"
 biometric = "1.1.0"
-biometricKtx = "1.4.0-alpha02"  # Добавьте эту строку
+biometricKtx = "1.4.0-alpha02"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -23,6 +23,8 @@ firebase-database = { group = "com.google.firebase", name = "firebase-database-k
 
 androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 androidx-biometric-ktx = { group = "androidx.biometric", name = "biometric-ktx", version.ref = "biometricKtx" }
+
+
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

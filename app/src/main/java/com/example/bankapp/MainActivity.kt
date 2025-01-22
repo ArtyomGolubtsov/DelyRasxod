@@ -10,8 +10,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import java.net.URL
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -23,6 +21,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -31,7 +30,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import java.io.InputStream
-import java.net.HttpURLConnection
 
 data class ActivityItem(
     val name: String,
@@ -87,7 +85,6 @@ class MainActivity : AppCompatActivity() {
         private const val PICK_IMAGE_REQUEST = 1
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -95,71 +92,60 @@ class MainActivity : AppCompatActivity() {
         window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
         window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
 
-        //Работа с NavigationBar----------------------------------------------------------------
         val homeButton: ImageView = findViewById(R.id.homeBtnIcon)
         homeButton.setImageResource(R.drawable.ic_home_outline_active)
         val homeTxt: TextView = findViewById(R.id.homeBtnText)
         homeTxt.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
 
-        val groupsBtn: LinearLayout =  findViewById(R.id.groupsBtn)
+        val groupsBtn: LinearLayout = findViewById(R.id.groupsBtn)
         groupsBtn.setOnClickListener {
             val intent = Intent(this, GroupsActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
         }
 
-
-        //homeButton.setImageResource(R.drawable.ic_home_outline)
-        //homeTxt.setTextColor(ContextCompat.getColor(this, R.color.polycy_tips))
-        //.................................
-
+        val allActivitiesLink: TextView = findViewById(R.id.allActivitiesLink)
+        allActivitiesLink.setOnClickListener {
+            val intent = Intent(this, GroupsActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
         val usersPhoto: ImageView = findViewById(R.id.userPhoto)
         usersPhoto.setOnClickListener {
             openGallery()
         }
 
-        // Инициализация RecyclerView
         val recyclerView: RecyclerView = findViewById(R.id.activityList)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-
-        // Пример списка активностей
         val activityList = listOf(
             ActivityItem("Активность 2", "Категория 2", R.drawable.placeholder),
             ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
             ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder)
         )
-        // Использование без ресурсов
-        val spacingInPixels = 16 // укажите нужное значение в пикселях
+        val spacingInPixels = 16
         recyclerView.addItemDecoration(SpaceItemDecoration(spacingInPixels))
 
-        // Установка адаптера
         val adapter = ActivityAdapter(activityList)
         recyclerView.adapter = adapter
 
-
-        // Инициализация Firebase Auth и Database
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance().getReference("Users")
 
-        // Инициализация TextView для имени
         userNameTextView = findViewById(R.id.userNameTextView)
 
-        // Получение текущего пользователя
         val currentUser = auth.currentUser
         if (currentUser != null) {
             loadUserName(currentUser.uid)
             loadUserPhoto(currentUser.uid)
         }
-
-
-
     }
 
     private fun loadUserName(userId: String) {
@@ -185,7 +171,6 @@ class MainActivity : AppCompatActivity() {
                 if (snapshot.exists()) {
                     val photoUrl = snapshot.getValue(String::class.java)
                     if (photoUrl != null && photoUrl.isNotEmpty()) {
-                        // Загружаем изображение по URL
                         loadImageFromUrl(photoUrl)
                     }
                 }
@@ -198,25 +183,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadImageFromUrl(imageUrl: String) {
-        Thread {
-            try {
-                val url = URL(imageUrl)
-                val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
-                connection.doInput = true
-                connection.connect()
-                val input: InputStream = connection.inputStream
-                val bitmap = BitmapFactory.decodeStream(input)
-                runOnUiThread {
-                    val usersPhoto: ImageView = findViewById(R.id.userPhoto)
-                    usersPhoto.setImageBitmap(bitmap)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                runOnUiThread {
-                    Toast.makeText(this@MainActivity, "Ошибка загрузки изображения: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }.start()
+        val usersPhoto: ImageView = findViewById(R.id.userPhoto)
+        Glide.with(this)
+            .load(imageUrl)
+            .placeholder(R.drawable.placeholder) // Плейсхолдер
+            .into(usersPhoto)
     }
 
     private fun openGallery() {
@@ -275,4 +246,3 @@ class MainActivity : AppCompatActivity() {
             }
     }
 }
-
