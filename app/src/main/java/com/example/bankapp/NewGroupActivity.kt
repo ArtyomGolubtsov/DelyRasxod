@@ -16,6 +16,7 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -104,7 +105,7 @@ class NewGroupActivity : AppCompatActivity() {
 
         // Установка адаптера
         recyclerView = findViewById(R.id.categoryList) // Убедитесь, что вы используете правильный ID
-        recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        recyclerView.layoutManager = GridLayoutManager(this, 3)
 
         // Создание списка групп активностей
         val activityList = listOf(
