@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">ДелиРасход</string>
     <string name="enter_email">Пожалуйста, введите email и ФИО</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 
 </resources>

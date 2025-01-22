@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -31,7 +32,12 @@ class newGroupActivity : AppCompatActivity() {
 
         //------------------------------------------------
 
-
+        val continueBtn: AppCompatButton = findViewById(R.id.continueBtn)
+        continueBtn.setOnClickListener {
+            val intent = Intent(this, GroupMembersChoiceActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

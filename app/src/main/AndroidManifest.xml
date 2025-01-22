@@ -16,6 +16,9 @@
         android:theme="@style/Base.Theme.BankApp"
         tools:targetApi="31">
         <activity
+            android:name=".GroupMembersChoiceActivity"
+            android:exported="false" />
+        <activity
             android:name=".newGroupActivity"
             android:exported="false" />
         <activity
