@@ -52,12 +52,13 @@ class GroupsActivity : AppCompatActivity() {
             noGroupsBox.visibility = View.GONE // скрываем, если группы есть
         }
 
-        val CreateGroups: Button = findViewById(R.id.addGroupBtn)
-        CreateGroups.setOnClickListener {
-            val intent = Intent(this, newGroupActivity::class.java)
+        val CreateGroupsBtn: Button = findViewById(R.id.addGroupBtn)
+        CreateGroupsBtn.setOnClickListener {
+            val intent = Intent(this, NewGroupActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
         }
+
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

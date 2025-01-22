@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 
-class newGroupActivity : AppCompatActivity() {
+class NewGroupActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
 
@@ -48,6 +48,13 @@ class newGroupActivity : AppCompatActivity() {
         CancelBtn.setOnClickListener {
             onBackPressed() // Возвращает пользователя на предыдущий экран
             finish()
+            overridePendingTransition(0, 0)
+        }
+
+        val continueBtn: AppCompatButton = findViewById(R.id.continueBtn)
+        continueBtn.setOnClickListener {
+            val intent = Intent(this, GroupMembersChoiceActivity::class.java)
+            startActivity(intent)
             overridePendingTransition(0, 0)
         }
 

@@ -2,7 +2,6 @@ package com.example.bankapp
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.net.Uri
@@ -92,6 +91,7 @@ class MainActivity : AppCompatActivity() {
         window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
         window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
 
+        // Работа с NavigationBar
         val homeButton: ImageView = findViewById(R.id.homeBtnIcon)
         homeButton.setImageResource(R.drawable.ic_home_outline_active)
         val homeTxt: TextView = findViewById(R.id.homeBtnText)
@@ -99,13 +99,6 @@ class MainActivity : AppCompatActivity() {
 
         val groupsBtn: LinearLayout = findViewById(R.id.groupsBtn)
         groupsBtn.setOnClickListener {
-            val intent = Intent(this, GroupsActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-
-        val allActivitiesLink: TextView = findViewById(R.id.allActivitiesLink)
-        allActivitiesLink.setOnClickListener {
             val intent = Intent(this, GroupsActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
@@ -122,25 +115,33 @@ class MainActivity : AppCompatActivity() {
             openGallery()
         }
 
+        // Инициализация RecyclerView
         val recyclerView: RecyclerView = findViewById(R.id.activityList)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
+        // Пример списка активностей
         val activityList = listOf(
             ActivityItem("Активность 2", "Категория 2", R.drawable.placeholder),
             ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
             ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder)
         )
-        val spacingInPixels = 16
+
+        // Использование без ресурсов
+        val spacingInPixels = 16 // укажите нужное значение в пикселях
         recyclerView.addItemDecoration(SpaceItemDecoration(spacingInPixels))
 
+        // Установка адаптера
         val adapter = ActivityAdapter(activityList)
         recyclerView.adapter = adapter
 
+        // Инициализация Firebase Auth и Database
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance().getReference("Users")
 
+        // Инициализация TextView для имени
         userNameTextView = findViewById(R.id.userNameTextView)
 
+        // Получение текущего пользователя
         val currentUser = auth.currentUser
         if (currentUser != null) {
             loadUserName(currentUser.uid)
@@ -171,6 +172,7 @@ class MainActivity : AppCompatActivity() {
                 if (snapshot.exists()) {
                     val photoUrl = snapshot.getValue(String::class.java)
                     if (photoUrl != null && photoUrl.isNotEmpty()) {
+                        // Загружаем изображение с помощью Glide
                         loadImageFromUrl(photoUrl)
                     }
                 }
@@ -186,7 +188,7 @@ class MainActivity : AppCompatActivity() {
         val usersPhoto: ImageView = findViewById(R.id.userPhoto)
         Glide.with(this)
             .load(imageUrl)
-            .placeholder(R.drawable.placeholder) // Плейсхолдер
+            .placeholder(R.drawable.placeholder) // Заглушка во время загрузки
             .into(usersPhoto)
     }
 
@@ -207,15 +209,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadImageFromUri(imageUri: Uri) {
-        try {
-            val inputStream: InputStream? = contentResolver.openInputStream(imageUri)
-            val bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
-            val usersPhoto: ImageView = findViewById(R.id.userPhoto)
-            usersPhoto.setImageBitmap(bitmap)
-            uploadImageToFirebase(imageUri)
-        } catch (e: Exception) {
-            Toast.makeText(this, "Ошибка загрузки изображения: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
+        val usersPhoto: ImageView = findViewById(R.id.userPhoto)
+        Glide.with(this)
+            .load(imageUri)
+            .placeholder(R.drawable.placeholder) // Заглушка во время загрузки
+            .into(usersPhoto)
+
+        uploadImageToFirebase(imageUri)
     }
 
     private fun uploadImageToFirebase(uri: Uri) {

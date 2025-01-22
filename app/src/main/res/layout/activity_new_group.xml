@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".newGroupActivity"
+    tools:context=".NewGroupActivity"
     android:background="@color/app_bg">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -182,15 +182,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"/>
 
-            <ImageView
-                android:id="@+id/ellipse1"
-                android:layout_width="400dp"
-                android:layout_height="300dp"
-                android:layout_marginStart="-150dp"
-                android:elevation="-10dp"
-                android:rotation="-45"
-                android:src="@drawable/ellipse_shape" />
-
         </LinearLayout>
 
         <LinearLayout
@@ -201,8 +192,8 @@
             app:layout_constraintBottom_toBottomOf="parent">
 
             <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/CancelBtn"
                 style="@style/CategoryButton"
+                android:id="@+id/CancelBtn"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -224,6 +215,18 @@
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ImageView
+        android:id="@+id/ellipse1"
+        android:layout_width="400dp"
+        android:layout_height="300dp"
+        android:src="@drawable/ellipse_shape"
+        android:rotation="-45"
+        android:elevation="-10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="-150dp"
+        />
 
     <ImageView
         android:id="@+id/ellipse2"
