@@ -115,6 +115,14 @@ class MainActivity : AppCompatActivity() {
             openGallery()
         }
 
+        val AllActivity: TextView = findViewById(R.id.allActivitiesLink)
+        AllActivity.setOnClickListener {
+            val intent = Intent(this, GroupsActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
+
+
         // Инициализация RecyclerView
         val recyclerView: RecyclerView = findViewById(R.id.activityList)
         recyclerView.layoutManager = LinearLayoutManager(this)
