@@ -109,7 +109,8 @@
                 app:tabTextColor="@color/white"
                 app:tabBackground="@drawable/tab_contacts_bg"
                 app:tabIndicatorHeight="0dp"
-                app:tabIndicatorColor="@null"/>
+                app:tabIndicatorColor="@null"
+                android:animateLayoutChanges="true"/>
 
             <!-- Для отображения содержимого вкладок -->
             <androidx.viewpager2.widget.ViewPager2
