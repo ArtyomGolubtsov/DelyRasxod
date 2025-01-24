@@ -46,7 +46,7 @@
             android:id="@+id/userPhone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Номер телефона"
+            android:text="Почта"
             android:textSize="12dp"
             android:textColor="@color/polycy_tips"
             android:textFontWeight="700"
@@ -54,7 +54,21 @@
             app:layout_constraintTop_toBottomOf="@id/userName"
             app:layout_constraintStart_toEndOf="@id/userPhotoBox"/>
 
+
         <ImageButton
+            android:id="@+id/addFriendBtn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_add"
+            android:background="@drawable/btn_blue_bg"
+            android:scaleType="centerCrop"
+            android:layout_marginRight="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/markContactBtn"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <ImageButton
+            android:id="@+id/markContactBtn"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:src="@drawable/mark_star"
@@ -62,11 +76,8 @@
             android:scaleType="centerCrop"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            />
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-    
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
