@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -25,6 +26,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.flexbox.JustifyContent
+import com.google.android.play.core.integrity.v
+import android.content.Context
 
 // Данные о групповой активности
 data class GroupActivityItem(val name: String, val category: String, val imageResId: Int)
@@ -76,25 +79,26 @@ class GroupActivityAdapter(
         // Установка обработчиков для кнопок
         holder.ctgrEventBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_event)
-            onCategoryButtonClick(holder.ctgrEventBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrEventBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
         }
         holder.ctgrFamilyBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_family)
-            onCategoryButtonClick(holder.ctgrFamilyBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrFamilyBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
         }
         holder.ctgrOtherBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_other)
-            onCategoryButtonClick(holder.ctgrOtherBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrOtherBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
         }
         holder.ctgrPartyBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_party)
-            onCategoryButtonClick(holder.ctgrPartyBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrPartyBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
         }
         holder.ctgrTravelBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.dely_blue)
-            onCategoryButtonClick(holder.ctgrTravelBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrTravelBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
         }
     }
+
 
     private fun resetButtonBackgrounds(holder: ActivityViewHolder) {
         val defaultColor = ContextCompat.getColor(holder.itemView.context, R.color.back_btn)
@@ -108,26 +112,31 @@ class GroupActivityAdapter(
     private var selectedCount: Int = 0
 
 
-    private fun onCategoryButtonClick(button: AppCompatButton?, color: Int, defaultColor: Int) {
-        if (button != null) {
+    private fun onCategoryButtonClick(context: Context, button: AppCompatButton?, color: Int, defaultColor: Int) {
+        button?.let { v ->
             // Если кнопка еще не выбрана и максимум не достигнут
-            if (!selectedButtons.contains(button) && selectedCount < 2) {
-                button.backgroundTintList = ColorStateList.valueOf(color)
-                selectedButtons.add(button)
+            if (!selectedButtons.contains(v) && selectedCount < 2) {
+                v.backgroundTintList = ColorStateList.valueOf(color)
+                selectedButtons.add(v)
                 selectedCount++ // Увеличиваем количество выбранных категорий
                 onCategorySelected() // Вызываем коллбэк для уведомления о выборе категории
+
             } else {
                 // Если кнопка уже выбрана, сбрасываем цвет
                 if (selectedButtons.contains(button)) {
                     button.backgroundTintList = ColorStateList.valueOf(defaultColor)
                     selectedButtons.remove(button)
                     selectedCount-- // Уменьшаем количество выбранных категорий
-                } else {
-                    Toast.makeText(button.context, "Вы уже выбрали максимальное количество категорий", Toast.LENGTH_SHORT).show()
+                }
+                if(selectedCount == 2)
+                {
+                    val shake = AnimationUtils.loadAnimation(context, R.anim.shake) // Используем переданный контекст
+                    v.startAnimation(shake)
                 }
             }
         }
     }
+
 
     override fun getItemCount() = activityList.size
 }
