@@ -28,6 +28,8 @@ import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.flexbox.JustifyContent
 import com.google.android.play.core.integrity.v
 import android.content.Context
+import androidx.cardview.widget.CardView
+import androidx.constraintlayout.widget.ConstraintLayout
 
 // Данные о групповой активности
 data class GroupActivityItem(val name: String, val category: String, val imageResId: Int)
@@ -146,6 +148,7 @@ class NewGroupActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var groupTitle: EditText
     private lateinit var groupDescription: EditText
+    private lateinit var groupImageBtn: ConstraintLayout
     private lateinit var groupImage: ImageView
     private var imageUri: Uri? = null
     private var selectedCount: Int = 0
@@ -171,10 +174,11 @@ class NewGroupActivity : AppCompatActivity() {
         // Инициализация полей
         groupTitle = findViewById(R.id.groupTitle)
         groupDescription = findViewById(R.id.groupDescription)
+        groupImageBtn = findViewById(R.id.addGroupImageBtn)
         groupImage = findViewById(R.id.groupImage)
 
         // Кнопка для выбора изображения
-        groupImage.setOnClickListener {
+        groupImageBtn.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             startActivityForResult(intent, PICK_IMAGE_REQUEST)
         }
