@@ -3,6 +3,7 @@ package com.example.bankapp
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -22,11 +23,12 @@ class GroupsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_groups)
         window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
         window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
-
+        val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
         val btnGoBack: ImageButton = findViewById(R.id.btnGoBack)
         btnGoBack.setOnClickListener {
             onBackPressed() // Возвращает пользователя на предыдущий экран
             finish()
+            btnGoBack.startAnimation(clickAnimation)
             overridePendingTransition(0, 0)
         }
 
@@ -40,6 +42,7 @@ class GroupsActivity : AppCompatActivity() {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
+            mainBtn.startAnimation(clickAnimation)
         }
 
         //------------------------------------------------
@@ -53,11 +56,20 @@ class GroupsActivity : AppCompatActivity() {
         }
 
         val CreateGroupsBtn: Button = findViewById(R.id.addGroupBtn)
+
+
         CreateGroupsBtn.setOnClickListener {
+            // Запускаем анимацию нажатия
+            CreateGroupsBtn.startAnimation(clickAnimation)
+
+            // Запускаем новое активити
             val intent = Intent(this, NewGroupActivity::class.java)
             startActivity(intent)
+
+            // Анимации перехода (если нужны)
             overridePendingTransition(0, 0)
         }
+
 
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->

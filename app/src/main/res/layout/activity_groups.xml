@@ -82,13 +82,16 @@
             style="@style/BigBlueButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Добавить группу"
             android:layout_marginTop="20dp"
-            app:layout_constraintTop_toBottomOf="@id/noGroupsTitle"
-            app:layout_constraintBottom_toBottomOf="parent"
             android:drawableLeft="@drawable/ic_add"
             android:drawablePadding="-24dp"
-            android:paddingHorizontal="20dp" />
+            android:paddingHorizontal="20dp"
+            android:text="Добавить группу"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/noGroupsTitle"
+            app:layout_constraintVertical_bias="0.0" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

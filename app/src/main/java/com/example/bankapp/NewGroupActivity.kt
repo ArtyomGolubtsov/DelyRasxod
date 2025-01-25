@@ -1,8 +1,9 @@
 package com.example.bankapp
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.graphics.Color
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -19,33 +20,63 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.flexbox.JustifyContent
-import com.google.android.play.core.integrity.v
-import android.content.Context
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.FirebaseStorage
+import java.io.File
+import java.security.MessageDigest
+import java.util.UUID
 
 // Данные о групповой активности
 data class GroupActivityItem(val name: String, val category: String, val imageResId: Int)
 
+// Данные о группе
+data class Group(
+    val id: String = "",
+    val title: String = "",
+    val description: String = "",
+    val imageUri: String = "",
+    val categories: List<String> = emptyList()
+)
+
 // Адаптер для группы активностей
 class GroupActivityAdapter(
     private val activityList: List<GroupActivityItem>,
-    private val onCategorySelected: () -> Unit
+    private val onCategorySelected: (List<String>) -> Unit
 ) : RecyclerView.Adapter<GroupActivityAdapter.ActivityViewHolder>() {
 
     inner class ActivityViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        // Определите кнопки
         val ctgrEventBtn: AppCompatButton? = view.findViewById(R.id.CtgrEventBtn)
         val ctgrFamilyBtn: AppCompatButton? = view.findViewById(R.id.CtgrFamilyBtn)
         val ctgrOtherBtn: AppCompatButton? = view.findViewById(R.id.CtgrOtherBtn)
         val ctgrPartyBtn: AppCompatButton? = view.findViewById(R.id.CtgrPartyBtn)
         val ctgrTravelBtn: AppCompatButton? = view.findViewById(R.id.CtgrTravelBtn)
     }
+
+    class SpaceItemDecoration(private val space: Int) : RecyclerView.ItemDecoration() {
+        override fun getItemOffsets(
+            outRect: Rect,
+            view: View,
+            parent: RecyclerView,
+            state: RecyclerView.State
+        ) {
+            outRect.bottom = space
+        }
+    }
+
+
+    private val selectedButtons = mutableSetOf<AppCompatButton>()
+    private var selectedCategories = mutableListOf<String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActivityViewHolder {
         val layoutId = when (viewType) {
@@ -71,34 +102,31 @@ class GroupActivityAdapter(
         }
     }
 
-    private val selectedButtons = mutableSetOf<AppCompatButton>()
-
     override fun onBindViewHolder(holder: ActivityViewHolder, position: Int) {
         resetButtonBackgrounds(holder)
 
-        // Установка обработчиков для кнопок
+        // Установка обработчиков для кнопок с разными цветами
         holder.ctgrEventBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_event)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrEventBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrEventBtn, color, R.color.back_btn, "Event")
         }
         holder.ctgrFamilyBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_family)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrFamilyBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrFamilyBtn, color, R.color.back_btn, "Family")
         }
         holder.ctgrOtherBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_other)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrOtherBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrOtherBtn, color, R.color.back_btn, "Other")
         }
         holder.ctgrPartyBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_party)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrPartyBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrPartyBtn, color, R.color.back_btn, "Party")
         }
         holder.ctgrTravelBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.dely_blue)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrTravelBtn, color, ContextCompat.getColor(holder.itemView.context, R.color.back_btn))
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrTravelBtn, color, R.color.back_btn, "Travel")
         }
     }
-
 
     private fun resetButtonBackgrounds(holder: ActivityViewHolder) {
         val defaultColor = ContextCompat.getColor(holder.itemView.context, R.color.back_btn)
@@ -111,26 +139,33 @@ class GroupActivityAdapter(
 
     private var selectedCount: Int = 0
 
-
-    private fun onCategoryButtonClick(context: Context, button: AppCompatButton?, color: Int, defaultColor: Int) {
+    private fun onCategoryButtonClick(
+        context: Context,
+        button: AppCompatButton?,
+        selectedColor: Int,
+        defaultColor: Int,
+        category: String
+    ) {
         button?.let { v ->
-            // Если кнопка еще не выбрана и максимум не достигнут
+            // Если кнопка еще не выбрана и максимум категорий не выбран
             if (!selectedButtons.contains(v) && selectedCount < 2) {
-                v.backgroundTintList = ColorStateList.valueOf(color)
+                val clickAnimation = AnimationUtils.loadAnimation(context, R.anim.keyboardfirst)
+                v.startAnimation(clickAnimation)
+                v.backgroundTintList = ColorStateList.valueOf(selectedColor)
                 selectedButtons.add(v)
-                selectedCount++ // Увеличиваем количество выбранных категорий
-                onCategorySelected() // Вызываем коллбэк для уведомления о выборе категории
-
+                selectedCategories.add(category)
+                selectedCount++
+                onCategorySelected(selectedCategories) // Передаем выбранные категории
             } else {
                 // Если кнопка уже выбрана, сбрасываем цвет
-                if (selectedButtons.contains(button)) {
-                    button.backgroundTintList = ColorStateList.valueOf(defaultColor)
-                    selectedButtons.remove(button)
-                    selectedCount-- // Уменьшаем количество выбранных категорий
+                if (selectedButtons.contains(v)) {
+                    v.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, defaultColor))
+                    selectedButtons.remove(v)
+                    selectedCategories.remove(category)
+                    selectedCount--
                 }
-                if(selectedCount == 2)
-                {
-                    val shake = AnimationUtils.loadAnimation(context, R.anim.shake) // Используем переданный контекст
+                if (selectedCount == 2) {
+                    val shake = AnimationUtils.loadAnimation(context, R.anim.shake)
                     v.startAnimation(shake)
                 }
             }
@@ -148,8 +183,11 @@ class NewGroupActivity : AppCompatActivity() {
     private lateinit var groupDescription: EditText
     private lateinit var groupImage: ImageView
     private var imageUri: Uri? = null
-    private var selectedCount: Int = 0
     private val PICK_IMAGE_REQUEST = 1
+
+    private lateinit var auth: FirebaseAuth
+    private lateinit var userId: String
+    private var selectedCategories: List<String> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -157,58 +195,46 @@ class NewGroupActivity : AppCompatActivity() {
         window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
         window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
         setContentView(R.layout.activity_new_group)
-        // Настройка нижнего меню
-        val icogroupsBtn: ImageView = findViewById(R.id.groupsBtnIcon)
-        icogroupsBtn.setImageResource(R.drawable.ic_groups_outline_active)
-        val groupTxt: TextView = findViewById(R.id.groupsBtnText)
-        groupTxt.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
-        val mainBtn: LinearLayout = findViewById(R.id.homeBtn)
-        mainBtn.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-        // Инициализация полей
+
+        auth = FirebaseAuth.getInstance()
+        userId = auth.currentUser?.uid ?: return
+
         groupTitle = findViewById(R.id.groupTitle)
         groupDescription = findViewById(R.id.groupDescription)
         groupImage = findViewById(R.id.groupImage)
 
-        // Кнопка для выбора изображения
-        groupImage.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-            startActivityForResult(intent, PICK_IMAGE_REQUEST)
+        val addGroupImageBtn: ConstraintLayout = findViewById(R.id.addGroupImageBtn)
+        addGroupImageBtn.setOnClickListener {
+            launchImagePicker()
         }
 
-        // Навигационные кнопки
         val btnGoBack: ImageButton = findViewById(R.id.btnGoBack)
         btnGoBack.setOnClickListener {
             onBackPressed()
-            overridePendingTransition(0, 0)
         }
+
         val cancelBtn: AppCompatButton = findViewById(R.id.CancelBtn)
         cancelBtn.setOnClickListener {
             onBackPressed()
-            overridePendingTransition(0, 0)
         }
 
-        // Настройка RecyclerView и остального интерфейса
         setupUi()
 
-        // Кнопка продолжить
         findViewById<AppCompatButton>(R.id.continueBtn).setOnClickListener {
             onContinueButtonClicked()
         }
     }
 
-    private fun setupUi() {
-        // Настройка RecyclerView для категорий, как у вас было ранее
-        recyclerView = findViewById(R.id.categoryList)
-        recyclerView.layoutManager = FlexboxLayoutManager(this).apply {
-            flexDirection = FlexDirection.ROW
-            justifyContent = JustifyContent.FLEX_START
-        }
+    private fun launchImagePicker() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
 
-        // Установка адаптера
+    private fun setupUi() {
+        recyclerView = findViewById(R.id.categoryList)
+        recyclerView.layoutManager = LinearLayoutManager(this) // Замените на LinearLayoutManager
+        recyclerView.addItemDecoration(SpaceItemDecoration(16)) // Добавляем отступы для элементов
+
         val activityList = listOf(
             GroupActivityItem("Путешествие", "Travel", R.layout.ctgr_travel),
             GroupActivityItem("Вечеринка", "Party", R.layout.ctgr_party),
@@ -217,36 +243,31 @@ class NewGroupActivity : AppCompatActivity() {
             GroupActivityItem("Другое", "Other", R.layout.ctgr_other)
         )
 
-        val adapter = GroupActivityAdapter(activityList) { onCategorySelected() }
-        recyclerView.adapter = adapter
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        val adapter = GroupActivityAdapter(activityList) { categories ->
+            selectedCategories = categories
         }
+        recyclerView.adapter = adapter
     }
 
-    private fun onCategorySelected() {
-        selectedCount++
-    }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK) {
             imageUri = data?.data
-            groupImage.setImageURI(imageUri)
+            imageUri?.let { uri ->
+                Glide.with(this).load(uri).into(groupImage)
+            }
         }
     }
 
     private fun onContinueButtonClicked() {
         val title = groupTitle.text.toString().trim()
         val description = groupDescription.text.toString().trim()
-
         val isTitleValid = title.isNotEmpty()
         val isDescriptionValid = description.isNotEmpty()
         val isImageValid = imageUri != null
-        val isCategorySelected = selectedCount > 0
+        val isCategorySelected = selectedCategories.isNotEmpty()
 
         if (!isTitleValid) {
             Toast.makeText(this, "Введите заголовок группы", Toast.LENGTH_SHORT).show()
@@ -257,10 +278,45 @@ class NewGroupActivity : AppCompatActivity() {
         } else if (!isCategorySelected) {
             Toast.makeText(this, "Выберите хотя бы одну категорию", Toast.LENGTH_SHORT).show()
         } else {
-            // Все проверки пройдены, продолжаем
-            val intent = Intent(this, GroupMembersChoiceActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
+            val imageHash = hashString(imageUri.toString())
+            val storageRef = FirebaseStorage.getInstance().reference
+            val imageRef = storageRef.child("group_images/${imageHash}.jpg")
+
+            imageRef.putFile(imageUri!!)
+                .addOnSuccessListener {
+                    imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
+                        saveGroupToDatabase(title, description, downloadUrl.toString())
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
+                }
         }
+    }
+
+    private fun hashString(input: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        return digest.digest(input.toByteArray()).joinToString("") { String.format("%02x", it) }
+    }
+
+    private fun saveGroupToDatabase(title: String, description: String, imageUrl: String) {
+        val groupId = UUID.randomUUID().toString()
+        val group = Group(
+            id = groupId,
+            title = title,
+            description = description,
+            imageUri = imageUrl,
+            categories = selectedCategories
+        )
+        val database = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups")
+
+        database.child(groupId).setValue(group)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Группа успешно создана", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, GroupMembersChoiceActivity::class.java))
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Ошибка при создании группы", Toast.LENGTH_SHORT).show()
+            }
     }
 }

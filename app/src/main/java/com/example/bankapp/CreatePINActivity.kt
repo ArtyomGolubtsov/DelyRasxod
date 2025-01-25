@@ -2,6 +2,7 @@ package com.example.bankapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.animation.AnimationUtils
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -47,7 +48,14 @@ class CreatePINActivity : AppCompatActivity() {
         for (i in 0..9) {
             val buttonId = resources.getIdentifier("btn$i", "id", packageName)
             val button: AppCompatButton = findViewById(buttonId)
+
+            // Загружаем анимацию из файла keyboardfirst.xml
+            val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
+
             button.setOnClickListener {
+                // Запускаем анимацию нажатия
+                button.startAnimation(clickAnimation)
+
                 if (currentIndex < pinDigits.size) {
                     if (isConfirming) {
                         confirmPinCode += i.toString() // Добавляем цифру к строке второго PIN-кода
@@ -69,8 +77,12 @@ class CreatePINActivity : AppCompatActivity() {
             }
         }
 
-        // Установка обработчика для кнопки удаления
+        val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
+
         DltBtn.setOnClickListener {
+            // Запускаем анимацию нажатия
+            DltBtn.startAnimation(clickAnimation)
+
             if (currentIndex > 0) {
                 currentIndex--
                 if (isConfirming) {
@@ -81,6 +93,7 @@ class CreatePINActivity : AppCompatActivity() {
                 pinDigits[currentIndex].text = ""
             }
         }
+
     }
 
     private fun prepareForConfirmation(InserPassword: TextView) {

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.animation.AnimationUtils
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -59,10 +60,18 @@ class EntryPINActivity : AppCompatActivity() {
             findViewById(R.id.PINDigit3),
             findViewById(R.id.PINDigit4)
         )
-
-        // Настройка кнопки удаления
+// Настройка кнопки удаления
         val deleteBtn: ImageButton = findViewById(R.id.btn_delete)
-        deleteBtn.setOnClickListener { onDeleteButtonClicked() }
+
+// Загружаем анимацию из файла keyboardfirst.xml
+        val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
+
+        deleteBtn.setOnClickListener {
+            // Запускаем анимацию нажатия
+            deleteBtn.startAnimation(clickAnimation)
+            onDeleteButtonClicked()
+        }
+
     }
 
     private fun setupPINInput() {
@@ -70,9 +79,18 @@ class EntryPINActivity : AppCompatActivity() {
         for (i in 0..9) {
             val buttonId = resources.getIdentifier("btn$i", "id", packageName)
             val button: AppCompatButton = findViewById(buttonId)
-            button.setOnClickListener { onPinDigitButtonClicked(i) }
+
+            // Загружаем анимацию из файла keyboardfirst.xml
+            val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
+
+            button.setOnClickListener {
+                // Запускаем анимацию нажатия
+                button.startAnimation(clickAnimation)
+                onPinDigitButtonClicked(i)
+            }
         }
     }
+
 
     private fun onPinDigitButtonClicked(digit: Int) {
         if (currentIndex < pinDigits.size) {

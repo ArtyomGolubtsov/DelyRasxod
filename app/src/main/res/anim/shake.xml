@@ -4,7 +4,7 @@
         android:fromXDelta="-2%"
         android:toXDelta="2%"
         android:duration="100"
-        android:repeatCount="3"
+        android:repeatCount="2"
         android:repeatMode="reverse"
         android:interpolator="@android:anim/decelerate_interpolator" />
 </set>

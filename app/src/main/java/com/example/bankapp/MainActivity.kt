@@ -6,9 +6,11 @@ import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -33,7 +35,7 @@ import java.io.InputStream
 data class ActivityItem(
     val name: String,
     val category: String,
-    val imageResId: Int
+    val imageUrl: String
 )
 
 class SpaceItemDecoration(private val space: Int) : RecyclerView.ItemDecoration() {
@@ -69,8 +71,14 @@ class ActivityAdapter(private val activityList: List<ActivityItem>) : RecyclerVi
         val currentItem = activityList[position]
         holder.activityName.text = currentItem.name
         holder.activityCategory.text = currentItem.category
-        holder.activityImage.setImageResource(currentItem.imageResId)
+
+        // Загрузка изображения через Glide по URL
+        Glide.with(holder.itemView.context)
+            .load(currentItem.imageUrl) // Загружаем изображение по URL
+            .placeholder(R.drawable.placeholder) // Заглушка во время загрузки
+            .into(holder.activityImage)
     }
+
 
     override fun getItemCount() = activityList.size
 }
@@ -79,6 +87,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var userNameTextView: TextView
     private lateinit var database: DatabaseReference
     private lateinit var auth: FirebaseAuth
+    private lateinit var activityList: MutableList<ActivityItem>
+    private lateinit var adapter: ActivityAdapter
 
     companion object {
         private const val PICK_IMAGE_REQUEST = 1
@@ -90,6 +100,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
         window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
+        val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
 
         // Работа с NavigationBar
         val homeButton: ImageView = findViewById(R.id.homeBtnIcon)
@@ -101,6 +112,7 @@ class MainActivity : AppCompatActivity() {
         groupsBtn.setOnClickListener {
             val intent = Intent(this, GroupsActivity::class.java)
             startActivity(intent)
+            groupsBtn.startAnimation(clickAnimation)
             overridePendingTransition(0, 0)
         }
 
@@ -113,6 +125,7 @@ class MainActivity : AppCompatActivity() {
         val usersPhoto: ImageView = findViewById(R.id.userPhoto)
         usersPhoto.setOnClickListener {
             openGallery()
+            usersPhoto.startAnimation(clickAnimation)
         }
 
         val AllActivity: TextView = findViewById(R.id.allActivitiesLink)
@@ -120,27 +133,21 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, GroupsActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
+            AllActivity.startAnimation(clickAnimation)
         }
-
 
         // Инициализация RecyclerView
         val recyclerView: RecyclerView = findViewById(R.id.activityList)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Пример списка активностей
-        val activityList = listOf(
-            ActivityItem("Активность 2", "Категория 2", R.drawable.placeholder),
-            ActivityItem("Активность 3", "Категория 3", R.drawable.placeholder),
-            ActivityItem("Активность 1", "Категория 1", R.drawable.placeholder)
-        )
+        // Инициализация списка активностей
+        activityList = mutableListOf()
+        adapter = ActivityAdapter(activityList)
+        recyclerView.adapter = adapter
 
         // Использование без ресурсов
         val spacingInPixels = 16 // укажите нужное значение в пикселях
         recyclerView.addItemDecoration(SpaceItemDecoration(spacingInPixels))
-
-        // Установка адаптера
-        val adapter = ActivityAdapter(activityList)
-        recyclerView.adapter = adapter
 
         // Инициализация Firebase Auth и Database
         auth = FirebaseAuth.getInstance()
@@ -154,8 +161,31 @@ class MainActivity : AppCompatActivity() {
         if (currentUser != null) {
             loadUserName(currentUser.uid)
             loadUserPhoto(currentUser.uid)
+            loadUserActivities(currentUser.uid) // Загружаем активности пользователя
         }
     }
+
+    private fun loadUserActivities(userId: String) {
+        database.child(userId).child("Groups").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                activityList.clear() // Очищаем список перед добавлением новых данных
+                for (groupSnapshot in snapshot.children) {
+                    val groupName = groupSnapshot.child("title").getValue(String::class.java) ?: "Без названия"
+                    val categories = groupSnapshot.child("categories").children.joinToString(", ") { it.getValue(String::class.java) ?: "" }
+                    val imageUrl = groupSnapshot.child("imageUri").getValue(String::class.java) ?: ""
+
+                    // Добавляем группу в список активностей
+                    activityList.add(ActivityItem(groupName, categories, imageUrl)) // Сохраняем URL изображения
+                }
+                adapter.notifyDataSetChanged() // Обновляем адаптер
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@MainActivity, "Ошибка загрузки активностей", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
 
     private fun loadUserName(userId: String) {
         database.child(userId).child("name").addValueEventListener(object : ValueEventListener {
@@ -179,8 +209,7 @@ class MainActivity : AppCompatActivity() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     val photoUrl = snapshot.getValue(String::class.java)
-                    if (photoUrl != null && photoUrl.isNotEmpty()) {
-                        // Загружаем изображение с помощью Glide
+                    if (!photoUrl.isNullOrEmpty()) {
                         loadImageFromUrl(photoUrl)
                     }
                 }
@@ -236,6 +265,8 @@ class MainActivity : AppCompatActivity() {
         imageRef.putFile(uri)
             .addOnSuccessListener {
                 imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                    // Убедитесь, что ссылка корректная
+                    Log.d("Download URI:", downloadUri.toString())
                     saveUserPhotoUrlToDatabase(userId, downloadUri.toString())
                 }.addOnFailureListener {
                     Toast.makeText(this, "Ошибка получения ссылки", Toast.LENGTH_SHORT).show()
@@ -244,6 +275,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Ошибка загрузки: ${it.message}", Toast.LENGTH_SHORT).show()
             }
     }
+
 
     private fun saveUserPhotoUrlToDatabase(userId: String, photoUrl: String) {
         database.child(userId).child("UserPhoto").setValue(photoUrl)
@@ -254,3 +286,4 @@ class MainActivity : AppCompatActivity() {
             }
     }
 }
+
