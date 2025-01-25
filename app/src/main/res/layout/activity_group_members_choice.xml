@@ -81,7 +81,7 @@
                 android:textColor="@color/white"
                 android:backgroundTint="@color/back_btn"
                 android:textAlignment="textStart"
-                android:maxLines="1"
+                android:singleLine="true"
                 android:drawablePadding="10dp"
                 android:drawableLeft="@drawable/ic_search" />
         </LinearLayout>
