@@ -2,7 +2,6 @@ package com.example.bankapp
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
@@ -19,25 +18,26 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import java.io.InputStream
 
-data class ActivityItem(
+// Make ActivityItem open for inheritance
+open class ActivityItem(
     val name: String,
     val category: String,
     val imageUrl: String
 )
 
+class StaticActivityItem(
+    imageUrl: String
+) : ActivityItem("У вас еще нет групп(", "Создайте их!", imageUrl)
+
+// item decoration for recycler view
 class SpaceItemDecoration(private val space: Int) : RecyclerView.ItemDecoration() {
     override fun getItemOffsets(
         outRect: Rect,
@@ -54,6 +54,7 @@ class SpaceItemDecoration(private val space: Int) : RecyclerView.ItemDecoration(
     }
 }
 
+// Custom adapter for displaying ActivityItems
 class ActivityAdapter(private val activityList: List<ActivityItem>) : RecyclerView.Adapter<ActivityAdapter.ActivityViewHolder>() {
 
     class ActivityViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -72,17 +73,24 @@ class ActivityAdapter(private val activityList: List<ActivityItem>) : RecyclerVi
         holder.activityName.text = currentItem.name
         holder.activityCategory.text = currentItem.category
 
-        // Загрузка изображения через Glide по URL
         Glide.with(holder.itemView.context)
-            .load(currentItem.imageUrl) // Загружаем изображение по URL
-            .placeholder(R.drawable.placeholder) // Заглушка во время загрузки
+            .load(currentItem.imageUrl)
+            .placeholder(R.drawable.placeholder)
             .into(holder.activityImage)
-    }
 
+        if (currentItem is StaticActivityItem) {
+            holder.itemView.setOnClickListener {
+                val context = holder.itemView.context
+                val intent = Intent(context, NewGroupActivity::class.java)
+                context.startActivity(intent)
+            }
+        }
+    }
 
     override fun getItemCount() = activityList.size
 }
 
+// Main activity for the application
 class MainActivity : AppCompatActivity() {
     private lateinit var userNameTextView: TextView
     private lateinit var database: DatabaseReference
@@ -98,28 +106,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+
         window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
         window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
-        val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
 
-        // Работа с NavigationBar
-        val homeButton: ImageView = findViewById(R.id.homeBtnIcon)
-        homeButton.setImageResource(R.drawable.ic_home_outline_active)
-        val homeTxt: TextView = findViewById(R.id.homeBtnText)
-        homeTxt.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
+        val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
 
         val groupsBtn: LinearLayout = findViewById(R.id.groupsBtn)
         groupsBtn.setOnClickListener {
-            val intent = Intent(this, GroupsActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, GroupsActivity::class.java))
             groupsBtn.startAnimation(clickAnimation)
-            overridePendingTransition(0, 0)
-        }
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
         }
 
         val usersPhoto: ImageView = findViewById(R.id.userPhoto)
@@ -128,56 +124,49 @@ class MainActivity : AppCompatActivity() {
             usersPhoto.startAnimation(clickAnimation)
         }
 
-        val AllActivity: TextView = findViewById(R.id.allActivitiesLink)
-        AllActivity.setOnClickListener {
-            val intent = Intent(this, GroupsActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-            AllActivity.startAnimation(clickAnimation)
-        }
+        userNameTextView = findViewById(R.id.userNameTextView)
 
-        // Инициализация RecyclerView
+        // Initialize RecyclerView
         val recyclerView: RecyclerView = findViewById(R.id.activityList)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Инициализация списка активностей
+        // Initialize activity list
         activityList = mutableListOf()
         adapter = ActivityAdapter(activityList)
         recyclerView.adapter = adapter
 
-        // Использование без ресурсов
-        val spacingInPixels = 16 // укажите нужное значение в пикселях
+        // Add spacing to RecyclerView
+        val spacingInPixels = 16
         recyclerView.addItemDecoration(SpaceItemDecoration(spacingInPixels))
 
-        // Инициализация Firebase Auth и Database
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance().getReference("Users")
 
-        // Инициализация TextView для имени
-        userNameTextView = findViewById(R.id.userNameTextView)
-
-        // Получение текущего пользователя
         val currentUser = auth.currentUser
-        if (currentUser != null) {
-            loadUserName(currentUser.uid)
-            loadUserPhoto(currentUser.uid)
-            loadUserActivities(currentUser.uid) // Загружаем активности пользователя
+        currentUser?.let {
+            loadUserName(it.uid)
+            loadUserPhoto(it.uid) // Ensure this function is defined
+            loadUserActivities(it.uid)
         }
     }
 
     private fun loadUserActivities(userId: String) {
         database.child(userId).child("Groups").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                activityList.clear() // Очищаем список перед добавлением новых данных
+                activityList.clear()
                 for (groupSnapshot in snapshot.children) {
                     val groupName = groupSnapshot.child("title").getValue(String::class.java) ?: "Без названия"
                     val categories = groupSnapshot.child("categories").children.joinToString(", ") { it.getValue(String::class.java) ?: "" }
                     val imageUrl = groupSnapshot.child("imageUri").getValue(String::class.java) ?: ""
 
-                    // Добавляем группу в список активностей
-                    activityList.add(ActivityItem(groupName, categories, imageUrl)) // Сохраняем URL изображения
+                    activityList.add(ActivityItem(groupName, categories, imageUrl))
                 }
-                adapter.notifyDataSetChanged() // Обновляем адаптер
+
+                if (activityList.isEmpty()) {
+                    val defaultImageUrl = "drawable/logo"
+                    activityList.add(StaticActivityItem(defaultImageUrl))
+                }
+                adapter.notifyDataSetChanged()
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -186,16 +175,10 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-
     private fun loadUserName(userId: String) {
         database.child(userId).child("name").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    val userName = snapshot.getValue(String::class.java)
-                    userNameTextView.text = userName ?: "Имя не найдено"
-                } else {
-                    userNameTextView.text = "Имя не найдено"
-                }
+                userNameTextView.text = snapshot.getValue(String::class.java) ?: "Имя не найдено"
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -207,11 +190,13 @@ class MainActivity : AppCompatActivity() {
     private fun loadUserPhoto(userId: String) {
         database.child(userId).child("UserPhoto").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    val photoUrl = snapshot.getValue(String::class.java)
-                    if (!photoUrl.isNullOrEmpty()) {
-                        loadImageFromUrl(photoUrl)
-                    }
+                val photoUrl = snapshot.getValue(String::class.java)
+                val usersPhoto: ImageView = findViewById(R.id.userPhoto)
+                if (photoUrl != null) {
+                    Glide.with(this@MainActivity)
+                        .load(photoUrl)
+                        .placeholder(R.drawable.placeholder)
+                        .into(usersPhoto)
                 }
             }
 
@@ -219,14 +204,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Ошибка загрузки фото", Toast.LENGTH_SHORT).show()
             }
         })
-    }
-
-    private fun loadImageFromUrl(imageUrl: String) {
-        val usersPhoto: ImageView = findViewById(R.id.userPhoto)
-        Glide.with(this)
-            .load(imageUrl)
-            .placeholder(R.drawable.placeholder) // Заглушка во время загрузки
-            .into(usersPhoto)
     }
 
     private fun openGallery() {
@@ -239,9 +216,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
             val imageUri: Uri? = data.data
-            if (imageUri != null) {
-                loadImageFromUri(imageUri)
-            }
+            imageUri?.let { loadImageFromUri(it) }
         }
     }
 
@@ -249,7 +224,7 @@ class MainActivity : AppCompatActivity() {
         val usersPhoto: ImageView = findViewById(R.id.userPhoto)
         Glide.with(this)
             .load(imageUri)
-            .placeholder(R.drawable.placeholder) // Заглушка во время загрузки
+            .placeholder(R.drawable.placeholder)
             .into(usersPhoto)
 
         uploadImageToFirebase(imageUri)
@@ -265,8 +240,6 @@ class MainActivity : AppCompatActivity() {
         imageRef.putFile(uri)
             .addOnSuccessListener {
                 imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
-                    // Убедитесь, что ссылка корректная
-                    Log.d("Download URI:", downloadUri.toString())
                     saveUserPhotoUrlToDatabase(userId, downloadUri.toString())
                 }.addOnFailureListener {
                     Toast.makeText(this, "Ошибка получения ссылки", Toast.LENGTH_SHORT).show()
@@ -275,7 +248,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Ошибка загрузки: ${it.message}", Toast.LENGTH_SHORT).show()
             }
     }
-
 
     private fun saveUserPhotoUrlToDatabase(userId: String, photoUrl: String) {
         database.child(userId).child("UserPhoto").setValue(photoUrl)
@@ -286,4 +258,3 @@ class MainActivity : AppCompatActivity() {
             }
     }
 }
-
