@@ -124,6 +124,29 @@ class MainActivity : AppCompatActivity() {
             usersPhoto.startAnimation(clickAnimation)
         }
 
+        // Нижнее меню----------------------------------------
+        val homeBtnIcon: ImageView = findViewById(R.id.homeBtnIcon)
+        homeBtnIcon.setImageResource(R.drawable.ic_home_outline_active)
+        val homeTxt: TextView = findViewById(R.id.homeBtnText)
+        homeTxt.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
+        val mainBtn: LinearLayout = findViewById(R.id.homeBtn)
+
+        mainBtn.setOnClickListener {
+            val intent = Intent(this, NewGroupActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+            mainBtn.startAnimation(clickAnimation)
+        }
+
+        val TextAllGroup: TextView = findViewById(R.id.allActivitiesLink)
+        TextAllGroup.setOnClickListener{
+            val intent = Intent(this, NewGroupActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+            mainBtn.startAnimation(clickAnimation)
+        }
+
+
         userNameTextView = findViewById(R.id.userNameTextView)
 
         // Initialize RecyclerView
