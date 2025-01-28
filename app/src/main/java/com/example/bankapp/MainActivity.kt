@@ -75,7 +75,7 @@ class ActivityAdapter(private val activityList: List<ActivityItem>) : RecyclerVi
 
         Glide.with(holder.itemView.context)
             .load(currentItem.imageUrl)
-            .placeholder(R.drawable.placeholder)
+            .placeholder(R.drawable.logo)
             .into(holder.activityImage)
 
         if (currentItem is StaticActivityItem) {
