@@ -1,0 +1,21 @@
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/editGroupBtn"
+        android:title="Изменить"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/exitGroupBtn"
+        android:title="Выход"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/deleteGroupBtn"
+        android:title="Удалить группу"
+        app:showAsAction="never"
+        android:icon="@drawable/ic_delete"
+        app:theme="@style/AppMenuItem.Destructive"/>
+</menu>

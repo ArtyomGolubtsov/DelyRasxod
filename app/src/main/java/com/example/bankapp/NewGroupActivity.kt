@@ -14,7 +14,6 @@ import android.view.animation.AnimationUtils
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -24,7 +23,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.flexbox.FlexDirection
@@ -93,11 +91,11 @@ class GroupActivityAdapter(
 
     override fun getItemViewType(position: Int): Int {
         return when (activityList[position].category) {
-            "Travel" -> 1
-            "Party" -> 2
-            "Event" -> 3
-            "Family" -> 4
-            "Other" -> 5
+            "Путешествия" -> 1
+            "Вечеринка" -> 2
+            "Событие" -> 3
+            "Семья" -> 4
+            "Другое" -> 5
             else -> throw IllegalArgumentException("Invalid category: ${activityList[position].category}")
         }
     }
@@ -108,23 +106,23 @@ class GroupActivityAdapter(
         // Установка обработчиков для кнопок с разными цветами
         holder.ctgrEventBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_event)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrEventBtn, color, R.color.back_btn, "Event")
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrEventBtn, color, R.color.back_btn, "Событие")
         }
         holder.ctgrFamilyBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_family)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrFamilyBtn, color, R.color.back_btn, "Family")
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrFamilyBtn, color, R.color.back_btn, "Семья")
         }
         holder.ctgrOtherBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_other)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrOtherBtn, color, R.color.back_btn, "Other")
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrOtherBtn, color, R.color.back_btn, "Другое")
         }
         holder.ctgrPartyBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_party)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrPartyBtn, color, R.color.back_btn, "Party")
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrPartyBtn, color, R.color.back_btn, "Вечеринка")
         }
         holder.ctgrTravelBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.dely_blue)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrTravelBtn, color, R.color.back_btn, "Travel")
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrTravelBtn, color, R.color.back_btn, "Путешествия")
         }
     }
 
@@ -223,6 +221,12 @@ class NewGroupActivity : AppCompatActivity() {
         findViewById<AppCompatButton>(R.id.continueBtn).setOnClickListener {
             onContinueButtonClicked()
         }
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
     }
 
     private fun launchImagePicker() {
@@ -232,15 +236,17 @@ class NewGroupActivity : AppCompatActivity() {
 
     private fun setupUi() {
         recyclerView = findViewById(R.id.categoryList)
-        recyclerView.layoutManager = LinearLayoutManager(this) // Замените на LinearLayoutManager
-        recyclerView.addItemDecoration(SpaceItemDecoration(16)) // Добавляем отступы для элементов
+        recyclerView.layoutManager = FlexboxLayoutManager(this).apply {
+            flexDirection = FlexDirection.ROW
+            justifyContent = JustifyContent.FLEX_START
+        }
 
         val activityList = listOf(
-            GroupActivityItem("Путешествие", "Travel", R.layout.ctgr_travel),
-            GroupActivityItem("Вечеринка", "Party", R.layout.ctgr_party),
-            GroupActivityItem("Событие", "Event", R.layout.ctgr_event),
-            GroupActivityItem("Семья", "Family", R.layout.ctgr_family),
-            GroupActivityItem("Другое", "Other", R.layout.ctgr_other)
+            GroupActivityItem("Путешествия", "Путешествия", R.layout.ctgr_travel),
+            GroupActivityItem("Вечеринка", "Вечеринка", R.layout.ctgr_party),
+            GroupActivityItem("Событие", "Событие", R.layout.ctgr_event),
+            GroupActivityItem("Семья", "Семья", R.layout.ctgr_family),
+            GroupActivityItem("Другое", "Другое", R.layout.ctgr_other)
         )
 
         val adapter = GroupActivityAdapter(activityList) { categories ->
@@ -248,7 +254,6 @@ class NewGroupActivity : AppCompatActivity() {
         }
         recyclerView.adapter = adapter
     }
-
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

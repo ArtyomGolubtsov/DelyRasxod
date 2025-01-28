@@ -40,7 +40,17 @@
             app:layout_constraintTop_toTopOf="@id/btnGoBack"
             app:layout_constraintBottom_toBottomOf="@id/btnGoBack"/>
 
-
+        <ImageButton
+            android:id="@+id/addGroupBtnPlus"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginEnd="20dp"
+            android:background="@null"
+            android:src="@drawable/ic_add"
+            android:scaleType="centerCrop"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/mainTitle"
+            app:layout_constraintBottom_toBottomOf="@id/mainTitle" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -53,7 +63,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/navigationBar"/>
-
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/noGroupsBox"

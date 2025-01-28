@@ -28,7 +28,7 @@
         private lateinit var mainTitle: TextView
         private lateinit var tabLayout: TabLayout
         private lateinit var viewPager: ViewPager2
-        private lateinit var adapter: ViewPagerAdapter
+        private lateinit var adapter: ViewPagerAdapterContacts
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
@@ -46,7 +46,7 @@
             tabLayout = findViewById(R.id.tabLayout)
             viewPager = findViewById(R.id.viewPager)
             // Настройка адаптера для ViewPager2
-            adapter = ViewPagerAdapter(this)
+            adapter = ViewPagerAdapterContacts(this)
             viewPager.adapter = adapter
             // Связываем TabLayout с ViewPager2
             TabLayoutMediator(tabLayout, viewPager) { tab, position ->
