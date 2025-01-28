@@ -53,4 +53,36 @@
         <item name="android:textAlignment">center</item>
         <item name="android:background">@drawable/ctgr_btn_bg</item>
     </style>
+
+    <style name="CustomBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="android:minHeight">200dp</item> <!-- минимальная высота -->
+        <item name="behavior_peekHeight">200dp</item> <!-- высота в свернутом состоянии -->
+        <item name="cornerRadius">20dp</item>
+        <item name="cornerSize">20dp</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
+    </style>
+
+    <!-- Стиль для всего меню -->
+    <style name="AppPopupMenu" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@drawable/btn_grey_bg</item>
+        <item name="android:textColor">@color/polycy_tips</item>
+        <item name="android:titleTextColor">@color/polycy_tips</item>
+    </style>
+
+    <!-- Стиль для обычных пунктов -->
+    <style name="AppMenuItem" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:textColor">@color/polycy_tips</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:paddingVertical">5dp</item>
+        <item name="android:drawablePadding">16dp</item>
+        <item name="android:gravity">start|center_vertical</item>
+    </style>
+
+    <!-- Стиль для опасных действий -->
+    <style name="AppMenuItem.Destructive" parent="AppMenuItem">
+        <item name="android:textColor">@color/alert_red</item>
+    </style>
+
 </resources>

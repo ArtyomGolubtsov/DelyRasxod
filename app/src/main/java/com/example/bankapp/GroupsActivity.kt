@@ -177,6 +177,14 @@ class GroupsActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
         }
 
+        val createGroupsBtnPlus: ImageButton = findViewById(R.id.addGroupBtnPlus)
+        createGroupsBtnPlus.setOnClickListener {
+            createGroupsBtnPlus.startAnimation(clickAnimation)
+            val intent = Intent(this, NewGroupActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
+
         // Использование без ресурсов
         val spacingInPixels = 16 // Укажите нужное значение в пикселях
         recyclerView.addItemDecoration(SpaceItemDecoration(spacingInPixels))
