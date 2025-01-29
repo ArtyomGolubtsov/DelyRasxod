@@ -14,6 +14,7 @@ import android.view.animation.AnimationUtils
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -31,7 +32,6 @@ import com.google.android.flexbox.JustifyContent
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
-import java.io.File
 import java.security.MessageDigest
 import java.util.UUID
 
@@ -60,18 +60,6 @@ class GroupActivityAdapter(
         val ctgrPartyBtn: AppCompatButton? = view.findViewById(R.id.CtgrPartyBtn)
         val ctgrTravelBtn: AppCompatButton? = view.findViewById(R.id.CtgrTravelBtn)
     }
-
-    class SpaceItemDecoration(private val space: Int) : RecyclerView.ItemDecoration() {
-        override fun getItemOffsets(
-            outRect: Rect,
-            view: View,
-            parent: RecyclerView,
-            state: RecyclerView.State
-        ) {
-            outRect.bottom = space
-        }
-    }
-
 
     private val selectedButtons = mutableSetOf<AppCompatButton>()
     private var selectedCategories = mutableListOf<String>()
@@ -106,23 +94,23 @@ class GroupActivityAdapter(
         // Установка обработчиков для кнопок с разными цветами
         holder.ctgrEventBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_event)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrEventBtn, color, R.color.back_btn, "Событие")
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrEventBtn, color, "Событие")
         }
         holder.ctgrFamilyBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_family)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrFamilyBtn, color, R.color.back_btn, "Семья")
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrFamilyBtn, color, "Семья")
         }
         holder.ctgrOtherBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_other)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrOtherBtn, color, R.color.back_btn, "Другое")
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrOtherBtn, color, "Другое")
         }
         holder.ctgrPartyBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_party)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrPartyBtn, color, R.color.back_btn, "Вечеринка")
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrPartyBtn, color, "Вечеринка")
         }
         holder.ctgrTravelBtn?.setOnClickListener {
             val color = ContextCompat.getColor(holder.itemView.context, R.color.dely_blue)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrTravelBtn, color, R.color.back_btn, "Путешествия")
+            onCategoryButtonClick(holder.itemView.context, holder.ctgrTravelBtn, color, "Путешествия")
         }
     }
 
@@ -135,41 +123,24 @@ class GroupActivityAdapter(
         holder.ctgrTravelBtn?.backgroundTintList = ColorStateList.valueOf(defaultColor)
     }
 
-    private var selectedCount: Int = 0
-
-    private fun onCategoryButtonClick(
-        context: Context,
-        button: AppCompatButton?,
-        selectedColor: Int,
-        defaultColor: Int,
-        category: String
-    ) {
+    private fun onCategoryButtonClick(context: Context, button: AppCompatButton?, selectedColor: Int, category: String) {
         button?.let { v ->
-            // Если кнопка еще не выбрана и максимум категорий не выбран
-            if (!selectedButtons.contains(v) && selectedCount < 2) {
+            if (!selectedButtons.contains(v) && selectedCategories.size < 2) {
                 val clickAnimation = AnimationUtils.loadAnimation(context, R.anim.keyboardfirst)
                 v.startAnimation(clickAnimation)
                 v.backgroundTintList = ColorStateList.valueOf(selectedColor)
                 selectedButtons.add(v)
                 selectedCategories.add(category)
-                selectedCount++
                 onCategorySelected(selectedCategories) // Передаем выбранные категории
             } else {
-                // Если кнопка уже выбрана, сбрасываем цвет
                 if (selectedButtons.contains(v)) {
-                    v.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, defaultColor))
+                    v.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.back_btn))
                     selectedButtons.remove(v)
                     selectedCategories.remove(category)
-                    selectedCount--
-                }
-                if (selectedCount == 2) {
-                    val shake = AnimationUtils.loadAnimation(context, R.anim.shake)
-                    v.startAnimation(shake)
                 }
             }
         }
     }
-
 
     override fun getItemCount() = activityList.size
 }
@@ -180,6 +151,7 @@ class NewGroupActivity : AppCompatActivity() {
     private lateinit var groupTitle: EditText
     private lateinit var groupDescription: EditText
     private lateinit var groupImage: ImageView
+    private lateinit var mainTitle: TextView // Добавьте это для обращения к mainTitle
     private var imageUri: Uri? = null
     private val PICK_IMAGE_REQUEST = 1
 
@@ -194,8 +166,33 @@ class NewGroupActivity : AppCompatActivity() {
         window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
         setContentView(R.layout.activity_new_group)
 
+        // Инициализация FirebaseAuth и userId
         auth = FirebaseAuth.getInstance()
         userId = auth.currentUser?.uid ?: return
+
+        mainTitle = findViewById(R.id.mainTitle) // Инициализируйте mainTitle
+
+        val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
+        val icogroupsBtn: ImageView = findViewById(R.id.groupsBtnIcon)
+        icogroupsBtn.setImageResource(R.drawable.ic_groups_outline_active)
+        val groupTxt: TextView = findViewById(R.id.groupsBtnText)
+        groupTxt.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
+        val mainBtn: LinearLayout = findViewById(R.id.homeBtn)
+
+        mainBtn.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+            mainBtn.startAnimation(clickAnimation)
+        }
+
+        val continueBtn: AppCompatButton = findViewById(R.id.continueBtn)
+        // Извлечение groupId из Intent
+        val groupId = intent.getStringExtra("GROUP_ID")
+        if (!groupId.isNullOrEmpty()) {
+            getGroupDetailsFromDatabase(groupId)
+            continueBtn.text = "Сохранить"
+        }
 
         groupTitle = findViewById(R.id.groupTitle)
         groupDescription = findViewById(R.id.groupDescription)
@@ -255,7 +252,6 @@ class NewGroupActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
     }
 
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK) {
@@ -266,9 +262,35 @@ class NewGroupActivity : AppCompatActivity() {
         }
     }
 
+    private fun getGroupDetailsFromDatabase(groupId: String) {
+        // Используйте groupTitle вместо mainTitle
+        val database = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId")
+        database.get().addOnSuccessListener { dataSnapshot ->
+            val title = dataSnapshot.child("title").getValue(String::class.java)
+            val description = dataSnapshot.child("description").getValue(String::class.java)
+
+            // Устанавливаем текст в editable groupTitle
+            if (title != null) {
+                groupTitle.setText(title) // Установите текст в groupTitle
+            } else {
+                groupTitle.setText("") // Если название не найдено, очистите поле
+            }
+
+            // Устанавливаем текст в groupDescription
+            if (description != null) {
+                groupDescription.setText(description) // Установите текст в groupDescription
+            } else {
+                groupDescription.setText("") // Если описание не найдено, очистите поле
+            }
+        }.addOnFailureListener {
+            groupTitle.setText("Ошибка загрузки данных группы") // Обработка ошибки
+            groupDescription.setText("") // Очистка для description
+        }
+    }
+
     private fun onContinueButtonClicked() {
-        val title = groupTitle.text.toString().trim()
-        val description = groupDescription.text.toString().trim()
+        val title = groupTitle.text.toString().trim() // Получаем текст из groupTitle
+        val description = groupDescription.text.toString().trim() // Получаем текст из groupDescription
         val isTitleValid = title.isNotEmpty()
         val isDescriptionValid = description.isNotEmpty()
         val isImageValid = imageUri != null
@@ -290,13 +312,33 @@ class NewGroupActivity : AppCompatActivity() {
             imageRef.putFile(imageUri!!)
                 .addOnSuccessListener {
                     imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                        saveGroupToDatabase(title, description, downloadUrl.toString())
+                        // Сохраняем изменения
+                        saveChangesToDatabase(title, description) // Убедитесь, что здесь title и description
                     }
                 }
                 .addOnFailureListener {
                     Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
                 }
         }
+    }
+
+    private fun saveChangesToDatabase(title: String, description: String) {
+        val groupId = intent.getStringExtra("GROUP_ID") ?: return
+
+        val database = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId")
+        val updates = mapOf(
+            "title" to title,
+            "description" to description
+        )
+
+        database.updateChildren(updates)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Изменения сохранены", Toast.LENGTH_SHORT).show()
+                // Дополнительно можете перейти к следующему экрану
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Ошибка при сохранении изменений", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun hashString(input: String): String {

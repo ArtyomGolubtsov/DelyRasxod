@@ -33,7 +33,6 @@ class GreatingActivity : AppCompatActivity() {
             setContentView(R.layout.activity_greating) // Устанавливаем разметку
             setupViews() // Инициализация и настройка кнопок после установки разметки
         } else {
-            println("222222222222222222222")
             val intent = Intent(this, EntryPINActivity::class.java)
             startActivity(intent)
             finish() // Закрываем текущую активность, чтобы предотвратить возврат
