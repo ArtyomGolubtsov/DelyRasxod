@@ -4,16 +4,21 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
-class ViewPagerAdapterGroupInfo(fragmentActivity: FragmentActivity) : FragmentStateAdapter(fragmentActivity) {
+class ViewPagerAdapterGroupInfo(
+    fragmentActivity: FragmentActivity,
+    private val groupId: String // Параметр для передачи groupId
+) : FragmentStateAdapter(fragmentActivity) {
 
-    override fun getItemCount(): Int = 3
+    private val fragmentList = mutableListOf<Fragment>().apply {
+        add(GroupInfoFragment.newInstance(groupId)) // Передаем groupId
+        add(EmptyFragment())
+        add(TotalExpensesFragment())
+    }
 
-    override fun createFragment(position: Int): Fragment {
-        return when (position) {
-            0 -> GroupInfoFragment()
-            1 -> EmptyFragment()
-            2 -> TotalExpensesFragment()
-            else -> throw IllegalArgumentException("Invalid position: $position")
-        }
+    override fun getItemCount(): Int = fragmentList.size
+
+    override fun createFragment(position: Int): Fragment = fragmentList[position]
+
+    fun addFragment(fragment: Fragment) {
     }
 }

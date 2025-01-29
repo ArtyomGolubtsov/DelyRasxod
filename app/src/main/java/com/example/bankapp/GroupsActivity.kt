@@ -28,15 +28,21 @@ import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 
-// Данные для групп
 data class GroupItem(
+    val id: String, // Идентификатор группы
     val name: String,
     val categories: String,
     val imageUrl: String
 )
 
-// Адаптер для отображения групп в RecyclerView
-class GroupAdapter(private var groupList: List<GroupItem>) : RecyclerView.Adapter<GroupAdapter.GroupViewHolder>() {
+class GroupAdapter(
+    private var groupList: List<GroupItem>,
+    private val listener: OnItemClickListener
+) : RecyclerView.Adapter<GroupAdapter.GroupViewHolder>() {
+
+    interface OnItemClickListener {
+        fun onItemClick(groupId: String)
+    }
 
     class GroupViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val groupName: TextView = view.findViewById(R.id.activityName)
@@ -59,6 +65,10 @@ class GroupAdapter(private var groupList: List<GroupItem>) : RecyclerView.Adapte
             .load(currentItem.imageUrl)
             .placeholder(R.drawable.placeholder)
             .into(holder.groupImage)
+
+        holder.itemView.setOnClickListener {
+            listener.onItemClick(currentItem.id) // Передаем ID группы
+        }
     }
 
     override fun getItemCount() = groupList.size
@@ -85,11 +95,12 @@ class GroupViewModel : ViewModel() {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val groups = mutableListOf<GroupItem>()
                     for (groupSnapshot in snapshot.children) {
+                        val groupId = groupSnapshot.key ?: "0" // Получаем ключ записи как ID группы
                         val groupName = groupSnapshot.child("title").getValue(String::class.java) ?: "Без названия"
                         val categories = groupSnapshot.child("categories").children.joinToString(", ") { it.getValue(String::class.java) ?: "" }
                         val imageUrl = groupSnapshot.child("imageUri").getValue(String::class.java) ?: ""
 
-                        groups.add(GroupItem(groupName, categories, imageUrl))
+                        groups.add(GroupItem(groupId, groupName, categories, imageUrl))
                     }
                     _groupList.value = groups // Обновляем LiveData
                 }
@@ -103,7 +114,7 @@ class GroupViewModel : ViewModel() {
 }
 
 // Основная активность для групп
-class GroupsActivity : AppCompatActivity() {
+class GroupsActivity : AppCompatActivity(), GroupAdapter.OnItemClickListener {
     private lateinit var database: DatabaseReference
     private lateinit var auth: FirebaseAuth
     private lateinit var adapter: GroupAdapter
@@ -132,8 +143,8 @@ class GroupsActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.groupsList)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Инициализация списка групп
-        adapter = GroupAdapter(mutableListOf())
+        // Инициализация списка групп и адаптера
+        adapter = GroupAdapter(mutableListOf(), this) // Передаем текущую активность как слушатель
         recyclerView.adapter = adapter
 
         // Инициализация View для показа отсутствия групп
@@ -196,9 +207,16 @@ class GroupsActivity : AppCompatActivity() {
         }
     }
 
+    // Реализация метода onItemClick
+    override fun onItemClick(groupId: String) {
+        val intent = Intent(this, GroupInfoActivity::class.java)
+        intent.putExtra("GROUP_ID", groupId) // Передаем реальный ID группы
+        startActivity(intent) // Открываем GroupInfoActivity
+        overridePendingTransition(0, 0)
+    }
+
     // Обновление видимости списка и блока отсутствия групп
     private fun updateVisibility(groupList: List<GroupItem>) {
-
         if (groupList.isNotEmpty()) {
             noGroupsBox.visibility = View.GONE // Скрываем блок для отсутствия групп
             recyclerView.visibility = View.VISIBLE // Показываем список групп

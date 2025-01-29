@@ -13,7 +13,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 1
-        versionName = "БУ! Испугался не бойся!"
+        versionName = "Очкошник бля, че с неизвестных источников устанавливаешь?"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.androidx.biometric.ktx)
     implementation(libs.androidx.ui.geometry.android)
     implementation(libs.androidx.lifecycle.viewmodel.android)
+    implementation(libs.androidx.emoji)
+    implementation(libs.androidx.emoji.bundled)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

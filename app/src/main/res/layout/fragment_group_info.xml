@@ -24,7 +24,7 @@
             android:id="@+id/groupTitleLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Заголовок"
+            android:text="Описание"
             android:textSize="14sp"
             android:textColor="@color/white"
             android:textFontWeight="700"/>
@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Группа"
+            android:text="Описание группы"
             android:textSize="16sp"
             android:textColor="@color/white"
             android:textColorHint="@color/polycy_tips"
@@ -56,7 +56,7 @@
             android:id="@+id/groupDescriptionLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Описание"
+            android:text="Категории"
             android:textSize="14sp"
             android:textColor="@color/white"
             android:textFontWeight="700"/>
@@ -66,7 +66,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Что-то хорошее"
+            android:text="Категории группы"
             android:textSize="16sp"
             android:textColor="@color/white" />
     </LinearLayout>

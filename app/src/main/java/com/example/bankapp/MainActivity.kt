@@ -28,16 +28,22 @@ import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import java.io.InputStream
 
-// Make ActivityItem open for inheritance
+// Класс для группы
 open class ActivityItem(
+    val id: String,  // Добавляем поле id
     val name: String,
     val category: String,
     val imageUrl: String
-)
+) {
+    // Дополнительный конструктор для использования по умолчанию значений
+    constructor(id: String, name: String, category: String) : this(id, name, category, "drawable/logo")
+}
 
+// Статический элемент для отображения, если нет групп
 class StaticActivityItem(
-    imageUrl: String
-) : ActivityItem("У вас еще нет групп(", "Создайте их!", imageUrl)
+    imageUrl: String = "drawable/logo"  // Используется изображение по умолчанию здесь
+) : ActivityItem("0", "У вас еще нет групп", "Создайте их!", imageUrl)
+
 
 // item decoration for recycler view
 class SpaceItemDecoration(private val space: Int) : RecyclerView.ItemDecoration() {
@@ -86,8 +92,16 @@ class ActivityAdapter(private val activityList: List<ActivityItem>) : RecyclerVi
                 val intent = Intent(context, NewGroupActivity::class.java)
                 context.startActivity(intent)
             }
+        } else {
+            holder.itemView.setOnClickListener {
+                val context = holder.itemView.context
+                val intent = Intent(context, GroupInfoActivity::class.java)
+                intent.putExtra("GROUP_ID", currentItem.id) // Передаем реальный ID группы
+                context.startActivity(intent)
+            }
         }
     }
+
 
     override fun getItemCount() = activityList.size
 }
@@ -118,6 +132,7 @@ class MainActivity : AppCompatActivity() {
         groupsBtn.setOnClickListener {
             startActivity(Intent(this, GroupsActivity::class.java))
             groupsBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
         }
 
         val usersPhoto: ImageView = findViewById(R.id.userPhoto)
@@ -141,7 +156,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val TextAllGroup: TextView = findViewById(R.id.allActivitiesLink)
-        TextAllGroup.setOnClickListener{
+        TextAllGroup.setOnClickListener {
             val intent = Intent(this, NewGroupActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
@@ -149,8 +164,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         val searchContactsBtn: ImageButton = findViewById(R.id.searchBtn)
-        searchContactsBtn.setOnClickListener{
+        searchContactsBtn.setOnClickListener {
             val intent = Intent(this, GroupInfoActivity::class.java)
+            // Пример передачи groupId (можно заменить на реальный id)
+            intent.putExtra("GROUP_ID", 123)
             startActivity(intent)
             overridePendingTransition(0, 0)
             mainBtn.startAnimation(clickAnimation)
@@ -191,20 +208,24 @@ class MainActivity : AppCompatActivity() {
     private fun loadUserActivities(userId: String) {
         database.child(userId).child("Groups").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                activityList.clear()
+                activityList.clear() // очищаем список перед загрузкой
+
                 for (groupSnapshot in snapshot.children) {
+                    val groupId = groupSnapshot.key ?: "0" // Здесь вы получаете реальный ID
                     val groupName = groupSnapshot.child("title").getValue(String::class.java) ?: "Без названия"
                     val categories = groupSnapshot.child("categories").children.joinToString(", ") { it.getValue(String::class.java) ?: "" }
-                    val imageUrl = groupSnapshot.child("imageUri").getValue(String::class.java) ?: ""
+                    val imageUrl = groupSnapshot.child("imageUri").getValue(String::class.java) ?: "drawable/logo"
 
-                    activityList.add(ActivityItem(groupName, categories, imageUrl))
+                    // Добавление в список активностей с использованием реального ID
+                    activityList.add(ActivityItem(groupId, groupName, categories, imageUrl))
                 }
 
+                // Добавляем StaticActivityItem, только если групп нет
                 if (activityList.isEmpty()) {
-                    val defaultImageUrl = "drawable/logo"
-                    activityList.add(StaticActivityItem(defaultImageUrl))
+                    activityList.add(StaticActivityItem()) // Здесь будет использоваться дефолтное значение
                 }
-                adapter.notifyDataSetChanged()
+
+                adapter.notifyDataSetChanged() // Обновляем адаптер после загрузки данных
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -212,6 +233,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
+
 
     private fun loadUserName(userId: String) {
         database.child(userId).child("name").addValueEventListener(object : ValueEventListener {
