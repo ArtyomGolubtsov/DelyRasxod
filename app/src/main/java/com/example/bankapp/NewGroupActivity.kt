@@ -381,13 +381,20 @@ class NewGroupActivity : AppCompatActivity() {
         database.updateChildren(updates)
             .addOnSuccessListener {
                 Toast.makeText(this, "Изменения сохранены", Toast.LENGTH_SHORT).show()
-                onBackPressed()
+
+                // Открытие GroupInfoActivity и передача параметра GROUP_ID
+                val intent = Intent(this, GroupInfoActivity::class.java).apply {
+                    putExtra("GROUP_ID", groupId)
+                }
+                startActivity(intent)
+                finish() // Закрыть текущую активность, если нужно
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Ошибка при сохранении изменений", Toast.LENGTH_SHORT).show()
-                onBackPressed()
+                // Здесь тоже можно передать параметр если это необходимо
             }
     }
+
 
     private fun hashString(input: String): String {
         val digest = MessageDigest.getInstance("SHA-256")
