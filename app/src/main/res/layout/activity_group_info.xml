@@ -119,10 +119,6 @@
                 app:tabGravity="fill"
                 app:tabTextColor="@color/white"
                 app:tabBackground="@drawable/tab_group_bg"
-                app:tabPaddingTop="0dp"
-                app:tabPaddingBottom="0dp"
-                app:tabPaddingStart="0dp"
-                app:tabPaddingEnd="0dp"
                 app:tabIndicatorHeight="0dp"
                 app:tabIndicatorColor="@null" />
 

@@ -3,6 +3,7 @@ package com.example.bankapp
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -134,22 +135,34 @@ class GroupInfoActivity : AppCompatActivity() {
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = when (position) {
                 0 -> "Информация"
-                1 -> "Чат"
-                2 -> "Итого"
+                1 -> "Итого"
+                2 -> "Чат"
                 else -> ""
             }
         }.attach()
 
+
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 if (!isPageChangeProgrammatic) {
-                    if (position == 1) {
+                    if (position == 2) {
                         showChatBottomSheet()
                         resetViewPagerPosition()
                     }
                 }
             }
         })
+
+        tabLayout.apply {
+
+            // Или для каждой вкладки отдельно
+            for (i in 0 until tabCount) {
+                val tabView = (getChildAt(0) as ViewGroup).getChildAt(i)
+                val params = tabView.layoutParams as ViewGroup.MarginLayoutParams
+                params.setMargins(10, 0, 10, 0)
+                tabView.layoutParams = params
+            }
+        }
     }
 
     // Загрузка данных группы из Firebase
@@ -200,7 +213,7 @@ class GroupInfoActivity : AppCompatActivity() {
 
     private fun resetViewPagerPosition() {
         isPageChangeProgrammatic = true
-        viewPager.setCurrentItem(0, false)
+        viewPager.setCurrentItem(1, true)
         isPageChangeProgrammatic = false
     }
 }

@@ -11,8 +11,8 @@ class ViewPagerAdapterGroupInfo(
 
     private val fragmentList = mutableListOf<Fragment>().apply {
         add(GroupInfoFragment.newInstance(groupId)) // Передаем groupId
-        add(EmptyFragment())
         add(TotalExpensesFragment())
+        add(EmptyFragment())
     }
 
     override fun getItemCount(): Int = fragmentList.size

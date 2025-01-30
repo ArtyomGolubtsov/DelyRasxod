@@ -156,7 +156,7 @@
             <EditText
                 android:id="@+id/groupDescription"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="100dp"
                 android:gravity="top|start"
                 android:layout_marginTop="10dp"
                 android:hint="Что-то хорошее"
