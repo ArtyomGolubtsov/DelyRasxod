@@ -138,6 +138,11 @@ class GroupActivityAdapter(
                     selectedButtons.remove(v)
                     selectedCategories.remove(category)
                 }
+                else
+                {
+                    val shakeAnimation = AnimationUtils.loadAnimation(context, R.anim.shake)
+                    v.startAnimation(shakeAnimation)
+                }
             }
         }
     }
@@ -192,6 +197,7 @@ class NewGroupActivity : AppCompatActivity() {
         if (!groupId.isNullOrEmpty()) {
             getGroupDetailsFromDatabase(groupId)
             continueBtn.text = "Сохранить"
+            mainTitle.text = "Изменить"
         }
 
         groupTitle = findViewById(R.id.groupTitle)
@@ -238,6 +244,7 @@ class NewGroupActivity : AppCompatActivity() {
             justifyContent = JustifyContent.FLEX_START
         }
 
+        // Статический список, который позже можно будет заменить на динамический
         val activityList = listOf(
             GroupActivityItem("Путешествия", "Путешествия", R.layout.ctgr_travel),
             GroupActivityItem("Вечеринка", "Вечеринка", R.layout.ctgr_party),
@@ -268,6 +275,7 @@ class NewGroupActivity : AppCompatActivity() {
         database.get().addOnSuccessListener { dataSnapshot ->
             val title = dataSnapshot.child("title").getValue(String::class.java)
             val description = dataSnapshot.child("description").getValue(String::class.java)
+            val imageUri = dataSnapshot.child("imageUri").getValue(String::class.java)
 
             // Устанавливаем текст в editable groupTitle
             if (title != null) {
@@ -276,17 +284,35 @@ class NewGroupActivity : AppCompatActivity() {
                 groupTitle.setText("") // Если название не найдено, очистите поле
             }
 
+            // Получаем выбранные категории
+            val selectedCategoriesList = mutableListOf<String>()
+            for (categorySnapshot in dataSnapshot.child("selectedCategories").children) {
+                categorySnapshot.getValue(String::class.java)?.let { category ->
+                    selectedCategoriesList.add(category) // Добавляем категорию в список
+                }
+            }
+
             // Устанавливаем текст в groupDescription
             if (description != null) {
                 groupDescription.setText(description) // Установите текст в groupDescription
             } else {
                 groupDescription.setText("") // Если описание не найдено, очистите поле
             }
+
+            // Загружаем изображение в groupImage
+            if (imageUri != null) {
+                Glide.with(this).load(imageUri).into(groupImage) // Загружаем фото с помощью Glide
+            } else {
+                groupImage.setImageResource(R.drawable.placeholder) // Устанавливаем изображение по умолчанию, если imageUri не найден
+            }
         }.addOnFailureListener {
             groupTitle.setText("Ошибка загрузки данных группы") // Обработка ошибки
             groupDescription.setText("") // Очистка для description
+            groupImage.setImageResource(R.drawable.placeholder) // Устанавливаем изображение по умолчанию в случае ошибки
         }
     }
+
+
 
     private fun onContinueButtonClicked() {
         val title = groupTitle.text.toString().trim() // Получаем текст из groupTitle
@@ -308,38 +334,67 @@ class NewGroupActivity : AppCompatActivity() {
             val imageHash = hashString(imageUri.toString())
             val storageRef = FirebaseStorage.getInstance().reference
             val imageRef = storageRef.child("group_images/${imageHash}.jpg")
+            val continueBtn: AppCompatButton = findViewById(R.id.continueBtn)
 
-            imageRef.putFile(imageUri!!)
-                .addOnSuccessListener {
-                    imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                        // Сохраняем изменения
-                        saveChangesToDatabase(title, description) // Убедитесь, что здесь title и description
+            if(continueBtn.text.toString().trim() == "Сохранить")
+            {
+                imageRef.putFile(imageUri!!)
+                    .addOnSuccessListener {
+                        imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
+                            // Сохраняем изменения
+                            saveChangesToDatabase(title, description, downloadUrl.toString(), selectedCategories)
+                        }
                     }
-                }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
-                }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
+                    }
+            }
+            else
+            {
+                imageRef.putFile(imageUri!!)
+                    .addOnSuccessListener {
+                        imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
+                            // Сохраняем изменения
+                            saveGroupToDatabase(title, description, downloadUrl.toString())
+                        }
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
+                    }
+            }
+
         }
+
     }
 
-    private fun saveChangesToDatabase(title: String, description: String) {
+    private fun saveChangesToDatabase(title: String, description: String, imageUrl: String, categories: List<String>) {
         val groupId = intent.getStringExtra("GROUP_ID") ?: return
 
         val database = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId")
         val updates = mapOf(
             "title" to title,
-            "description" to description
+            "description" to description,
+            "imageUri" to imageUrl,
+            "categories" to categories
         )
 
         database.updateChildren(updates)
             .addOnSuccessListener {
                 Toast.makeText(this, "Изменения сохранены", Toast.LENGTH_SHORT).show()
-                // Дополнительно можете перейти к следующему экрану
+
+                // Открытие GroupInfoActivity и передача параметра GROUP_ID
+                val intent = Intent(this, GroupInfoActivity::class.java).apply {
+                    putExtra("GROUP_ID", groupId)
+                }
+                startActivity(intent)
+                finish() // Закрыть текущую активность, если нужно
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Ошибка при сохранении изменений", Toast.LENGTH_SHORT).show()
+                // Здесь тоже можно передать параметр если это необходимо
             }
     }
+
 
     private fun hashString(input: String): String {
         val digest = MessageDigest.getInstance("SHA-256")

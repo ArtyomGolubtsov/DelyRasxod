@@ -61,6 +61,7 @@ class GroupInfoActivity : AppCompatActivity() {
             startActivity(intent)
             overridePendingTransition(0, 0)
             mainBtn.startAnimation(clickAnimation)
+            finish()
         }
 
 
@@ -97,6 +98,7 @@ class GroupInfoActivity : AppCompatActivity() {
                         val intent = Intent(this, NewGroupActivity::class.java)
                         intent.putExtra("GROUP_ID", groupId) // Передача id группы
                         startActivity(intent)
+                        finish()
                         true
                     }
                     R.id.exitGroupBtn -> {
@@ -104,6 +106,7 @@ class GroupInfoActivity : AppCompatActivity() {
                         startActivity(intent)
                         overridePendingTransition(0, 0)
                         mainBtn.startAnimation(clickAnimation)
+                        finish()
                         true
                     }
                     R.id.deleteGroupBtn -> {

@@ -128,12 +128,7 @@ class MainActivity : AppCompatActivity() {
 
         val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
 
-        val groupsBtn: LinearLayout = findViewById(R.id.groupsBtn)
-        groupsBtn.setOnClickListener {
-            startActivity(Intent(this, GroupsActivity::class.java))
-            groupsBtn.startAnimation(clickAnimation)
-            overridePendingTransition(0, 0)
-        }
+
 
         val usersPhoto: ImageView = findViewById(R.id.userPhoto)
         usersPhoto.setOnClickListener {
@@ -149,11 +144,18 @@ class MainActivity : AppCompatActivity() {
         val mainBtn: LinearLayout = findViewById(R.id.homeBtn)
 
         mainBtn.setOnClickListener {
-            val intent = Intent(this, NewGroupActivity::class.java)
+            val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
             mainBtn.startAnimation(clickAnimation)
         }
+        val groupsBtn: LinearLayout = findViewById(R.id.groupsBtn)
+        groupsBtn.setOnClickListener {
+            startActivity(Intent(this, GroupsActivity::class.java))
+            groupsBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
+        //---------------------------------------------------------
 
         val TextAllGroup: TextView = findViewById(R.id.allActivitiesLink)
         TextAllGroup.setOnClickListener {
