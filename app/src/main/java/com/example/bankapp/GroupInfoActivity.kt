@@ -1,7 +1,11 @@
 package com.example.bankapp
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.view.MenuItem
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
@@ -11,8 +15,10 @@ import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.viewpager2.widget.ViewPager2
@@ -37,6 +43,7 @@ class GroupInfoActivity : AppCompatActivity() {
     private lateinit var groupName: TextView  // Для отображения названия группы
     private lateinit var groupImage: ImageView  // Для отображения изображения группы
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -93,6 +100,28 @@ class GroupInfoActivity : AppCompatActivity() {
         menuButton.setOnClickListener {
             val popupMenu = PopupMenu(this, menuButton)
             popupMenu.menuInflater.inflate(R.menu.action_group_menu, popupMenu.menu)
+
+            // Находим элемент "Удалить группу"
+            val deleteMenuItem = popupMenu.menu.findItem(R.id.deleteGroupBtn)
+
+            // Изменяем цвет текста
+            val spannableString = SpannableString(deleteMenuItem.title)
+            spannableString.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(this, R.color.alert_red)), // Красный цвет
+                0,
+                spannableString.length,
+                Spannable.SPAN_INCLUSIVE_INCLUSIVE
+            )
+            deleteMenuItem.title = spannableString
+
+            // Изменяем цвет иконки
+            val deleteIcon = deleteMenuItem.icon
+            if (deleteIcon != null) {
+                val wrappedIcon = DrawableCompat.wrap(deleteIcon)
+                DrawableCompat.setTint(wrappedIcon, ContextCompat.getColor(this, R.color.alert_red)) // Красный цвет
+                deleteMenuItem.icon = wrappedIcon
+            }
+
             popupMenu.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.editGroupBtn -> {
@@ -111,11 +140,13 @@ class GroupInfoActivity : AppCompatActivity() {
                         true
                     }
                     R.id.deleteGroupBtn -> {
+                        // Обработка удаления группы
                         true
                     }
                     else -> false
                 }
             }
+            popupMenu.setForceShowIcon(true)
             popupMenu.show()
         }
 

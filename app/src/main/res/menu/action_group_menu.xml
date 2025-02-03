@@ -5,17 +5,19 @@
     <item
         android:id="@+id/editGroupBtn"
         android:title="Изменить"
+        android:icon="@drawable/ic_edit"
         app:showAsAction="never"/>
 
     <item
         android:id="@+id/exitGroupBtn"
         android:title="Выход"
+        android:icon="@drawable/ic_exit"
         app:showAsAction="never"/>
 
     <item
         android:id="@+id/deleteGroupBtn"
         android:title="Удалить группу"
+        android:icon="@drawable/ic_trashbox_outline"
         app:showAsAction="never"
-        android:icon="@drawable/ic_delete"
-        app:theme="@style/AppMenuItem.Destructive"/>
+        />
 </menu>
