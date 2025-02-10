@@ -1,13 +1,16 @@
 package com.example.bankapp
 
+import android.app.Dialog
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -40,8 +43,8 @@ class GroupInfoActivity : AppCompatActivity() {
     private var isPageChangeProgrammatic = false
     private var isChatSheetShown = false
     private lateinit var database: DatabaseReference
-    private lateinit var groupName: TextView  // Для отображения названия группы
-    private lateinit var groupImage: ImageView  // Для отображения изображения группы
+    private lateinit var groupName: TextView
+    private lateinit var groupImage: ImageView
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,7 +60,7 @@ class GroupInfoActivity : AppCompatActivity() {
         window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
         window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
         val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
-        // Нижнее меню----------------------------------------
+
         val icogroupsBtn: ImageView = findViewById(R.id.groupsBtnIcon)
         icogroupsBtn.setImageResource(R.drawable.ic_groups_outline_active)
         val groupTxt: TextView = findViewById(R.id.groupsBtnText)
@@ -65,78 +68,53 @@ class GroupInfoActivity : AppCompatActivity() {
         val mainBtn: LinearLayout = findViewById(R.id.homeBtn)
 
         mainBtn.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
+            openActivity(MainActivity::class.java)
             mainBtn.startAnimation(clickAnimation)
             finish()
         }
 
-
-        // Инициализация базы данных
         database = FirebaseDatabase.getInstance().reference
 
-        // Инициализация UI элементов
-        groupName = findViewById(R.id.mainTitle)  // Здесь отображаем название группы
-        groupImage = findViewById(R.id.groupImage)  // Здесь будем отображать изображение группы
+        groupName = findViewById(R.id.mainTitle)
+        groupImage = findViewById(R.id.groupImage)
         val menuButton: ImageButton = findViewById(R.id.actionGroupBurger)
         val btnGoBack: ImageButton = findViewById(R.id.btnGoBack)
 
-        // Получаем ID группы, переданное через Intent
         val groupId = intent.getStringExtra("GROUP_ID") ?: "Неизвестный ID"
-
-        // Получаем данные группы из Firebase
         loadGroupData(groupId)
 
-        // Обработчик кнопки назад
         btnGoBack.setOnClickListener {
             onBackPressed()
-            finish()
             btnGoBack.startAnimation(clickAnimation)
             overridePendingTransition(0, 0)
         }
 
-        // Обработчик кнопки меню
         menuButton.setOnClickListener {
             val popupMenu = PopupMenu(this, menuButton)
             popupMenu.menuInflater.inflate(R.menu.action_group_menu, popupMenu.menu)
-
-            // Находим элемент "Удалить группу"
             val deleteMenuItem = popupMenu.menu.findItem(R.id.deleteGroupBtn)
-
-            // Изменяем цвет текста
             val spannableString = SpannableString(deleteMenuItem.title)
             spannableString.setSpan(
-                ForegroundColorSpan(ContextCompat.getColor(this, R.color.alert_red)), // Красный цвет
-                0,
-                spannableString.length,
-                Spannable.SPAN_INCLUSIVE_INCLUSIVE
+                ForegroundColorSpan(ContextCompat.getColor(this, R.color.alert_red)),
+                0, spannableString.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE
             )
             deleteMenuItem.title = spannableString
 
-            // Изменяем цвет иконки
             val deleteIcon = deleteMenuItem.icon
             if (deleteIcon != null) {
                 val wrappedIcon = DrawableCompat.wrap(deleteIcon)
-                DrawableCompat.setTint(wrappedIcon, ContextCompat.getColor(this, R.color.alert_red)) // Красный цвет
+                DrawableCompat.setTint(wrappedIcon, ContextCompat.getColor(this, R.color.alert_red))
                 deleteMenuItem.icon = wrappedIcon
             }
 
             popupMenu.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.editGroupBtn -> {
-                        val intent = Intent(this, NewGroupActivity::class.java)
-                        intent.putExtra("GROUP_ID", groupId) // Передача id группы
-                        startActivity(intent)
-                        finish()
+                        openActivity(NewGroupActivity::class.java)
                         true
                     }
                     R.id.exitGroupBtn -> {
-                        val intent = Intent(this, GroupsActivity::class.java)
-                        startActivity(intent)
-                        overridePendingTransition(0, 0)
-                        mainBtn.startAnimation(clickAnimation)
-                        finish()
+                        showExitGroupDialog()
                         true
                     }
                     R.id.deleteGroupBtn -> {
@@ -150,19 +128,14 @@ class GroupInfoActivity : AppCompatActivity() {
             popupMenu.show()
         }
 
-        // Инициализация TabLayout и ViewPager2
         tabLayout = findViewById(R.id.tabLayout)
         viewPager = findViewById(R.id.viewPager)
         adapter = ViewPagerAdapterGroupInfo(this, groupId)
 
-
-        // Создаем фрагмент и передаем groupId
-        val groupInfoFragment = GroupInfoFragment.newInstance(groupId) // Используем метод newInstance
-
+        val groupInfoFragment = GroupInfoFragment.newInstance(groupId)
         adapter.addFragment(groupInfoFragment)
         viewPager.adapter = adapter
 
-        // Связываем TabLayout с ViewPager2
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = when (position) {
                 0 -> "Информация"
@@ -171,7 +144,6 @@ class GroupInfoActivity : AppCompatActivity() {
                 else -> ""
             }
         }.attach()
-
 
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -185,8 +157,6 @@ class GroupInfoActivity : AppCompatActivity() {
         })
 
         tabLayout.apply {
-
-            // Или для каждой вкладки отдельно
             for (i in 0 until tabCount) {
                 val tabView = (getChildAt(0) as ViewGroup).getChildAt(i)
                 val params = tabView.layoutParams as ViewGroup.MarginLayoutParams
@@ -196,28 +166,24 @@ class GroupInfoActivity : AppCompatActivity() {
         }
     }
 
-    // Загрузка данных группы из Firebase
     private fun loadGroupData(groupId: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
-            // Запрос к базе данных Firebase
             database.child("Users").child(userId).child("Groups").child(groupId)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         val groupTitle = snapshot.child("title").getValue(String::class.java)
                         val groupImageUri = snapshot.child("imageUri").getValue(String::class.java)
 
-                        // Устанавливаем название группы в TextView
                         groupName.text = groupTitle ?: "Название не найдено"
 
-                        // Загружаем изображение группы с помощью Glide
                         if (!groupImageUri.isNullOrEmpty()) {
                             Glide.with(this@GroupInfoActivity)
                                 .load(groupImageUri)
-                                .placeholder(R.drawable.placeholder) // Изображение-заглушка
+                                .placeholder(R.drawable.placeholder)
                                 .into(groupImage)
                         } else {
-                            groupImage.setImageResource(R.drawable.placeholder) // Если изображения нет
+                            groupImage.setImageResource(R.drawable.placeholder)
                         }
                     }
 
@@ -246,5 +212,34 @@ class GroupInfoActivity : AppCompatActivity() {
         isPageChangeProgrammatic = true
         viewPager.setCurrentItem(1, true)
         isPageChangeProgrammatic = false
+    }
+
+    private fun showExitGroupDialog() {
+        val exitGroupDialogFragment = ExitGroupDialogFragment()
+
+        exitGroupDialogFragment.setExitGroupListener(object : ExitGroupDialogFragment.ExitGroupListener {
+            override fun onExitConfirmed() {
+                // Здесь реализуйте логику выхода из группы
+                val userId = FirebaseAuth.getInstance().currentUser?.uid
+                if (userId != null) {
+                    database.child("Groups").child(intent.getStringExtra("GROUP_ID")!!).child("Members").child(userId).removeValue()
+                }
+                val intent = Intent(this@GroupInfoActivity, GroupsActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+
+            override fun onExitCancelled() {
+                // Логика для отмены выхода из группы, если необходимо
+            }
+        })
+
+        exitGroupDialogFragment.show(supportFragmentManager, "ExitGroupDialog")
+    }
+
+    private fun openActivity(targetActivity: Class<*>) {
+        val intent = Intent(this, targetActivity)
+        startActivity(intent)
+        overridePendingTransition(0, 0)
     }
 }

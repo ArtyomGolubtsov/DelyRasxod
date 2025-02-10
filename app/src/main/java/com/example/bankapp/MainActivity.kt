@@ -167,9 +167,8 @@ class MainActivity : AppCompatActivity() {
 
         val searchContactsBtn: ImageButton = findViewById(R.id.searchBtn)
         searchContactsBtn.setOnClickListener {
-            val intent = Intent(this, GroupInfoActivity::class.java)
-            // Пример передачи groupId (можно заменить на реальный id)
-            intent.putExtra("GROUP_ID", 123)
+            val intent = Intent(this, GroupMembersChoiceActivity::class.java)
+            //intent.putExtra("GROUP_ID", 123)
             startActivity(intent)
             overridePendingTransition(0, 0)
             mainBtn.startAnimation(clickAnimation)
