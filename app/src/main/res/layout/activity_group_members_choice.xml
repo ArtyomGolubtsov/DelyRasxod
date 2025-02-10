@@ -88,7 +88,7 @@
         <LinearLayout
             android:id="@+id/tabsBox"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:layout_marginTop="20dp"
             app:layout_constraintTop_toBottomOf="@id/membersSearchBox"
@@ -105,18 +105,22 @@
                 app:tabBackground="@drawable/tab_contacts_bg"
                 app:tabIndicatorHeight="0dp"
                 app:tabIndicatorColor="@null"
-                android:animateLayoutChanges="true"/>
+                android:layout_alignParentTop="true"/>
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/viewPager"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/contactsList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+            </androidx.viewpager2.widget.ViewPager2>
 
         </LinearLayout>
-
-        <!-- Уберите RecyclerView из ViewPager2 -->
-
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/viewPager"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            app:layout_constraintTop_toBottomOf="@id/tabsBox"
-            app:layout_constraintBottom_toTopOf="@id/btnBox"/>
 
         <LinearLayout
             android:id="@+id/btnBox"
