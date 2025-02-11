@@ -84,11 +84,12 @@ class GroupInfoActivity : AppCompatActivity() {
         groupName = findViewById(R.id.mainTitle)
         groupImage = findViewById(R.id.groupImage)
         val menuButton: ImageButton = findViewById(R.id.actionGroupBurger)
-        val btnGoBack: ImageButton = findViewById(R.id.btnGoBack)
+
 
         val groupId = intent.getStringExtra("GROUP_ID") ?: "Неизвестный ID"
         loadGroupData(groupId)
 
+        val btnGoBack: ImageButton = findViewById(R.id.btnGoBack)
         btnGoBack.setOnClickListener {
             onBackPressed()
             btnGoBack.startAnimation(clickAnimation)

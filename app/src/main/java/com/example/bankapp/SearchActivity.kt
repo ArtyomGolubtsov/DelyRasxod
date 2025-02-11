@@ -46,6 +46,13 @@ class SearchActivity : AppCompatActivity() {
         adapter = ViewPagerAdapterContacts(this)
         viewPager.adapter = adapter
 
+        val btnGoBack: ImageButton = findViewById(R.id.btnGoBack)
+        btnGoBack.setOnClickListener {
+            onBackPressed()
+            btnGoBack.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
+
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = if (position == 0) "Поиск" else "Заявки"
         }.attach()
@@ -61,12 +68,11 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun setupBottomMenu(clickAnimation: android.view.animation.Animation) {
+        val homeBtnIcon: ImageView = findViewById(R.id.homeBtnIcon)
+        homeBtnIcon.setImageResource(R.drawable.ic_home_outline_active)
+        val homeTxt: TextView = findViewById(R.id.homeBtnText)
+        homeTxt.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
         val mainBtn: LinearLayout = findViewById(R.id.homeBtn)
-        val contactsIcon: ImageView = findViewById(R.id.contactsBtnIcon)
-        val contactsTxt: TextView = findViewById(R.id.contactsBtnText)
-
-        contactsIcon.setImageResource(R.drawable.ic_contacts_active)
-        contactsTxt.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
 
         mainBtn.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)

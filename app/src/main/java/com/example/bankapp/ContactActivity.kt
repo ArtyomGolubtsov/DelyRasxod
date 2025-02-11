@@ -3,7 +3,9 @@ package com.example.bankapp
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -48,9 +50,20 @@ class ContactActivity : AppCompatActivity() {
             tab.text = if (position == 0) "Все контакты" else "Избранные"
         }.attach()
 
+        tabLayout = findViewById(R.id.tabLayout)
+        viewPager = findViewById(R.id.viewPager)
 
+
+        adapter.addFragment(AllContactsFragment())
+        viewPager.adapter = adapter
+
+
+        //Ненужные кнопки в слоях
+        val btnGoBack: ImageButton = findViewById(R.id.btnGoBack)
+        btnGoBack.visibility = View.INVISIBLE
         val btnDelete: LinearLayout = findViewById(R.id.btnBox)
         btnDelete.visibility = View.INVISIBLE
+        //-----------------------------
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
