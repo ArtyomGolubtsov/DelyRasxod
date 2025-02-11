@@ -72,6 +72,12 @@ class GroupInfoActivity : AppCompatActivity() {
             mainBtn.startAnimation(clickAnimation)
             finish()
         }
+        val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)
+        contactsBtn.setOnClickListener {
+            startActivity(Intent(this, ContactActivity::class.java))
+            contactsBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
 
         database = FirebaseDatabase.getInstance().reference
 
@@ -225,6 +231,7 @@ class GroupInfoActivity : AppCompatActivity() {
                     database.child("Groups").child(intent.getStringExtra("GROUP_ID")!!).child("Members").child(userId).removeValue()
                 }
                 val intent = Intent(this@GroupInfoActivity, GroupsActivity::class.java)
+                intent.putExtra("GROUP_ID", intent.getStringExtra("GROUP_ID")) // Здесь передаем ID группы
                 startActivity(intent)
                 finish()
             }

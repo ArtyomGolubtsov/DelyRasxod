@@ -178,6 +178,12 @@ class GroupsActivity : AppCompatActivity(), GroupAdapter.OnItemClickListener {
             overridePendingTransition(0, 0)
             mainBtn.startAnimation(clickAnimation)
         }
+        val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)
+        contactsBtn.setOnClickListener {
+            startActivity(Intent(this, ContactActivity::class.java))
+            contactsBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
 
         // Кнопка для создания новых групп
         val createGroupsBtn: Button = findViewById(R.id.addGroupBtn)

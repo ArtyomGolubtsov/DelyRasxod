@@ -155,6 +155,12 @@ class MainActivity : AppCompatActivity() {
             groupsBtn.startAnimation(clickAnimation)
             overridePendingTransition(0, 0)
         }
+        val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)
+        contactsBtn.setOnClickListener {
+            startActivity(Intent(this, ContactActivity::class.java))
+            contactsBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
         //---------------------------------------------------------
 
         val TextAllGroup: TextView = findViewById(R.id.allActivitiesLink)
@@ -167,11 +173,10 @@ class MainActivity : AppCompatActivity() {
 
         val searchContactsBtn: ImageButton = findViewById(R.id.searchBtn)
         searchContactsBtn.setOnClickListener {
-            val intent = Intent(this, GroupMembersChoiceActivity::class.java)
-            //intent.putExtra("GROUP_ID", 123)
+            val intent = Intent(this, SearchActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
-            mainBtn.startAnimation(clickAnimation)
+            searchContactsBtn.startAnimation(clickAnimation)
         }
 
         userNameTextView = findViewById(R.id.userNameTextView)
