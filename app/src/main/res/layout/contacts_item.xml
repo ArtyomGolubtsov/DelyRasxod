@@ -67,12 +67,12 @@
             app:layout_constraintEnd_toStartOf="@id/markContactBtn"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
-        <ImageButton
+        <RadioButton
             android:id="@+id/markContactBtn"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:src="@drawable/mark_star"
-            android:background="@null"
+
+            android:background="@drawable/mark_star"
             android:scaleType="centerCrop"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

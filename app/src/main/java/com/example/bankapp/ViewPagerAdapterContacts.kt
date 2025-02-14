@@ -8,17 +8,11 @@ class ViewPagerAdapterContacts(fragmentActivity: FragmentActivity) : FragmentSta
 
     override fun getItemCount(): Int = 2
 
-    private val fragmentList = mutableListOf<Fragment>().apply {
-        add(AllContactsFragment())
-        add(MarkedContactsFragment())
-    }
-
     override fun createFragment(position: Int): Fragment {
-        return if (position == 0) AllContactsFragment() else MarkedContactsFragment()
+        return when (position) {
+            0 -> AllContactsFragment()
+            1 -> MarkedContactsFragment() // Реализуйте аналогично AllContactsFragment
+            else -> throw IllegalArgumentException("Invalid position")
+        }
     }
-
-    fun addFragment(fragment: Fragment) {
-
-    }
-
 }

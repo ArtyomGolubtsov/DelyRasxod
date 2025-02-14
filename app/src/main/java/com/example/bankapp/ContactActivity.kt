@@ -54,7 +54,7 @@ class ContactActivity : AppCompatActivity() {
         viewPager = findViewById(R.id.viewPager)
 
 
-        adapter.addFragment(AllContactsFragment())
+
         viewPager.adapter = adapter
 
 

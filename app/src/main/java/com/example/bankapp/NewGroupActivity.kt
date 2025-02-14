@@ -328,11 +328,13 @@ class NewGroupActivity : AppCompatActivity() {
         val isImageValid = imageUri != null
         val isCategorySelected = selectedCategories.isNotEmpty()
 
+        val groupId = intent.getStringExtra("GROUP_ID")
+
         if (!isTitleValid) {
             Toast.makeText(this, "Введите заголовок группы", Toast.LENGTH_SHORT).show()
         } else if (!isDescriptionValid) {
             Toast.makeText(this, "Введите описание группы", Toast.LENGTH_SHORT).show()
-        } else if (!isImageValid) {
+        } else if (!isImageValid && groupId.isNullOrEmpty()) {
             Toast.makeText(this, "Выберите фотографию группы", Toast.LENGTH_SHORT).show()
         } else if (!isCategorySelected) {
             Toast.makeText(this, "Выберите хотя бы одну категорию", Toast.LENGTH_SHORT).show()

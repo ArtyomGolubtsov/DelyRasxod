@@ -117,7 +117,9 @@ class GroupInfoActivity : AppCompatActivity() {
             popupMenu.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.editGroupBtn -> {
-                        openActivity(NewGroupActivity::class.java)
+                        val intent = Intent(this, NewGroupActivity::class.java)
+                        intent.putExtra("GROUP_ID", groupId) // Передача ID группы
+                        startActivity(intent)
                         true
                     }
                     R.id.exitGroupBtn -> {
