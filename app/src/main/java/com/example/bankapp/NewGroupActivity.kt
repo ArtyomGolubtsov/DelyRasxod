@@ -3,7 +3,6 @@ package com.example.bankapp
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -29,6 +28,7 @@ import com.bumptech.glide.Glide
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.flexbox.JustifyContent
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
@@ -62,7 +62,7 @@ class GroupActivityAdapter(
     }
 
     private val selectedButtons = mutableSetOf<AppCompatButton>()
-    private var selectedCategories = mutableListOf<String>()
+    var selectedCategories = mutableListOf<String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActivityViewHolder {
         val layoutId = when (viewType) {
@@ -145,11 +145,28 @@ class GroupActivityAdapter(
             val color = ContextCompat.getColor(holder.itemView.context, R.color.dely_blue)
             onCategoryButtonClick(holder.itemView.context, holder.ctgrTravelBtn, color, "Путешествия")
         }
+
+        // Активация кнопок на основе выбранных категорий
+        selectedCategories.forEach { category ->
+            when (category) {
+                "Событие" -> holder.ctgrEventBtn?.backgroundTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.context, R.color.ctgr_event))
+                "Семья" -> holder.ctgrFamilyBtn?.backgroundTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.context, R.color.ctgr_family))
+                "Другое" -> holder.ctgrOtherBtn?.backgroundTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.context, R.color.ctgr_other))
+                "Вечеринка" -> holder.ctgrPartyBtn?.backgroundTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.context, R.color.ctgr_party))
+                "Путешествия" -> holder.ctgrTravelBtn?.backgroundTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.context, R.color.dely_blue))
+            }
+        }
     }
 
     override fun getItemCount() = activityList.size
 }
 
+// Класс NewGroupActivity
 class NewGroupActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
@@ -189,6 +206,7 @@ class NewGroupActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
             mainBtn.startAnimation(clickAnimation)
         }
+
         val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)
         contactsBtn.setOnClickListener {
             startActivity(Intent(this, ContactActivity::class.java))
@@ -297,41 +315,16 @@ class NewGroupActivity : AppCompatActivity() {
                 groupImage.setImageResource(R.drawable.placeholder)
             }
 
-            // Activate category buttons based on loaded categories
+            // Обновите адаптер с загруженными категориями
             selectedCategories = selectedCategoriesList
-            activateCategoryButtons()
+            (recyclerView.adapter as? GroupActivityAdapter)?.apply {
+                selectedCategories = selectedCategories
+                notifyDataSetChanged() // Обновите состояние адаптера
+            }
         }.addOnFailureListener {
             groupTitle.setText("Ошибка загрузки данных группы")
             groupDescription.setText("")
             groupImage.setImageResource(R.drawable.placeholder)
-        }
-    }
-
-    private fun activateCategoryButtons() {
-        // Обновите состояние кнопок на основе загруженных категорий
-        selectedCategories.forEach { category ->
-            when (category) {
-                "Событие" -> {
-                    recyclerView.findViewHolderForAdapterPosition(2)?.itemView?.findViewById<AppCompatButton>(R.id.CtgrEventBtn)
-                        ?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.ctgr_event))
-                }
-                "Семья" -> {
-                    recyclerView.findViewHolderForAdapterPosition(3)?.itemView?.findViewById<AppCompatButton>(R.id.CtgrFamilyBtn)
-                        ?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.ctgr_family))
-                }
-                "Другое" -> {
-                    recyclerView.findViewHolderForAdapterPosition(4)?.itemView?.findViewById<AppCompatButton>(R.id.CtgrOtherBtn)
-                        ?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.ctgr_other))
-                }
-                "Вечеринка" -> {
-                    recyclerView.findViewHolderForAdapterPosition(1)?.itemView?.findViewById<AppCompatButton>(R.id.CtgrPartyBtn)
-                        ?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.ctgr_party))
-                }
-                "Путешествия" -> {
-                    recyclerView.findViewHolderForAdapterPosition(0)?.itemView?.findViewById<AppCompatButton>(R.id.CtgrTravelBtn)
-                        ?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.dely_blue))
-                }
-            }
         }
     }
 
