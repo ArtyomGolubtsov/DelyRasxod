@@ -67,13 +67,11 @@
             app:layout_constraintEnd_toStartOf="@id/markContactBtn"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
-        <RadioButton
+        <CheckBox
+            style="@style/CustomContactsCheckbox"
             android:id="@+id/markContactBtn"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-
-            android:background="@drawable/mark_star"
-            android:scaleType="centerCrop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
