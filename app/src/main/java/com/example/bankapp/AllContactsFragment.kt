@@ -133,7 +133,7 @@ class AllContactsFragment : Fragment() {
                 .child(trimmedTargetUserId)
                 .child("Friends")
                 .child("Requests")
-                .child("ID") // Установим значение текущего пользователя как key
+                .child(currentUserId) // Здесь ID текущего пользователя
 
             // Вместо true сохраняем userId текущего пользователя
             requestsRef.setValue(currentUserId).addOnCompleteListener { task ->

@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 
 class FriendRequestsFragment : Fragment() {
+
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: RequestsAdapter
     private val requestList = mutableListOf<User>()
@@ -77,41 +78,22 @@ class FriendRequestsFragment : Fragment() {
         }
     }
 
-    inner class RequestsAdapter(private var users: List<User>) :
-        RecyclerView.Adapter<RequestsAdapter.ViewHolder>() {
+    private fun acceptFriendRequest(currentUserId: String, targetUserId: String) {
+        // Удаляем запрос на дружбу
+        database.child(currentUserId).child("Friends").child("Requests").child(targetUserId).removeValue { error, _ ->
+            if (error == null) {
+                // Добавляем в друзья, только если удаление прошло успешно
+                database.child(currentUserId).child("Friends").child("Frinding").child(targetUserId).setValue("22")
+                database.child(targetUserId).child("Friends").child("Frinding").child(currentUserId).setValue("77")
 
-        inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            val userName: TextView = itemView.findViewById(R.id.userName)
-            val userPhone: TextView = itemView.findViewById(R.id.userPhone)
-            val userPhoto: ImageView = itemView.findViewById(R.id.userPhoto)
+                Toast.makeText(context, targetUserId, Toast.LENGTH_SHORT).show()
 
-            init {
-                itemView.findViewById<ImageButton>(R.id.addFriendBtn).setOnClickListener {
-                    val user = users[adapterPosition]
-                    // Отправка запроса на дружбу
-                    sendFriendRequest(user.userId)
-                }
+                // Обновляем список запросов после принятия
+                loadFriendRequests() // Вызываем загрузку запросов вместе с обновлением
+            } else {
+                Toast.makeText(context, "Error removing friend request", Toast.LENGTH_SHORT).show()
             }
         }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.contacts_item, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val user = users[position]
-            holder.userName.text = user.name
-            holder.userPhone.text = user.email
-
-            Glide.with(holder.itemView.context)
-                .load(user.UserPhoto)
-                .placeholder(R.drawable.ic_person_outline)
-                .into(holder.userPhoto)
-        }
-
-        override fun getItemCount() = users.size
     }
 
     private fun sendFriendRequest(targetUserId: String) {
@@ -132,23 +114,42 @@ class FriendRequestsFragment : Fragment() {
         }
     }
 
-    private fun loadUsers() {
-        // ... реализуйте метод для загрузки всех пользователей
-        database.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                requestList.clear()
-                for (userSnapshot in snapshot.children) {
-                    val user = userSnapshot.getValue(User::class.java)
-                    if (user != null && user.userId != currentUserId) {
-                        requestList.add(user)
+    inner class RequestsAdapter(private var users: List<User>) :
+        RecyclerView.Adapter<RequestsAdapter.ViewHolder>() {
+
+        inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val userName: TextView = itemView.findViewById(R.id.userName)
+            val userPhone: TextView = itemView.findViewById(R.id.userPhone)
+            val userPhoto: ImageView = itemView.findViewById(R.id.userPhoto)
+
+            init {
+                itemView.findViewById<ImageButton>(R.id.addFriendBtn).setOnClickListener {
+                    val user = users[adapterPosition]
+                    // Принять запрос на дружбу, передавая оба идентификатора
+                    if (currentUserId != null) {
+                        acceptFriendRequest(currentUserId, user.userId)
                     }
                 }
-                adapter.notifyDataSetChanged()
             }
+        }
 
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("UserLoading", "Error loading users: ${error.message}")
-            }
-        })
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.contacts_item, parent, false) // Убедитесь, что у вас есть разметка для контактов
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val user = users[position]
+            holder.userName.text = user.name
+            holder.userPhone.text = user.email
+
+            Glide.with(holder.itemView.context)
+                .load(user.UserPhoto)
+                .placeholder(R.drawable.ic_person_outline) // Замените на ваш ресурс
+                .into(holder.userPhoto)
+        }
+
+        override fun getItemCount() = users.size
     }
 }
