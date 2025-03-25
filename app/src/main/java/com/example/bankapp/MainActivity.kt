@@ -157,7 +157,7 @@ class MainActivity : AppCompatActivity() {
         }
         val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)
         contactsBtn.setOnClickListener {
-            startActivity(Intent(this, ContactActivity::class.java))
+            startActivity(Intent(this, FriendActivity::class.java))
             contactsBtn.startAnimation(clickAnimation)
             overridePendingTransition(0, 0)
         }

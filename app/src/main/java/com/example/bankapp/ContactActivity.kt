@@ -22,7 +22,7 @@ class ContactActivity : AppCompatActivity() {
 
     private lateinit var tabLayout: TabLayout
     private lateinit var viewPager: ViewPager2
-    private lateinit var adapter: ViewPagerAdapterContacts
+    private lateinit var adapter: ViewPagerAdapterFriends
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +43,7 @@ class ContactActivity : AppCompatActivity() {
         // Инициализация TabLayout и ViewPager2
         tabLayout = findViewById(R.id.tabLayout)
         viewPager = findViewById(R.id.viewPager)
-        adapter = ViewPagerAdapterContacts(this)
+        adapter = ViewPagerAdapterFriends(this)
         viewPager.adapter = adapter
 
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->

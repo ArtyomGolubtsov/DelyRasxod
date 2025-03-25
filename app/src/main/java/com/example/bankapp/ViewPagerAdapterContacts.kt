@@ -11,7 +11,7 @@ class ViewPagerAdapterContacts(fragmentActivity: FragmentActivity) : FragmentSta
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> AllContactsFragment()
-            1 -> FriendRequestsFragment() // Реализуйте аналогично AllContactsFragment
+            1 -> FriendRequestsFragment()
             else -> throw IllegalArgumentException("Invalid position")
         }
     }
