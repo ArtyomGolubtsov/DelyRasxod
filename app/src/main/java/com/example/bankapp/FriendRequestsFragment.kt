@@ -17,7 +17,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 
 class FriendRequestsFragment : Fragment() {
-
+    data class User(
+        val userId: String = "",
+        val name: String = "",
+        val email: String = "",
+        val UserPhoto: String = "",
+        val pin: String? = null
+    )
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: FriendRequestsAdapter
     private val requestList = mutableListOf<User>()

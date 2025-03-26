@@ -23,6 +23,13 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class FriendFragment : Fragment() {
+    data class User(
+        val userId: String = "",
+        val name: String = "",
+        val email: String = "",
+        val UserPhoto: String = "",
+        val pin: String? = null
+    )
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ContactsAdapter
     private lateinit var searchEditText: EditText

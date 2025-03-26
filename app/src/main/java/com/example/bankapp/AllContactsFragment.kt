@@ -17,12 +17,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 
 class AllContactsFragment : Fragment() {
+
+    // Модель пользователя должна быть определена в этом же файле или импортирована
+    data class User(
+        val userId: String = "",
+        val name: String = "",
+        val email: String = "",
+        val UserPhoto: String = "",
+        val pin: String? = null
+    )
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ContactsAdapter
     private lateinit var searchEditText: EditText
@@ -38,7 +44,7 @@ class AllContactsFragment : Fragment() {
         searchEditText = requireActivity().findViewById(R.id.membersSearch)
 
         setupRecyclerView()
-        loadUsers()
+        loadFriends()
         setupSearch()
 
         return view
@@ -52,70 +58,47 @@ class AllContactsFragment : Fragment() {
         recyclerView.adapter = adapter
     }
 
-    private fun loadUsers() {
+    private fun loadFriends() {
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
         if (currentUserId == null) {
             Log.e("UserLoading", "User not authenticated")
             return
         }
 
-        database.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                userList.clear()
-                for (userSnapshot in snapshot.children) {
-                    val user = userSnapshot.getValue(User::class.java)
-                    user?.let {
-                        Log.d("UserLoading", "Loaded user: ${it.name}, ID: ${it.userId}")
-                        userList.add(it)
-                    }
-                }
-                adapter.notifyDataSetChanged()
-                checkFriendshipStatusForUsers(currentUserId)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("UserLoading", "Error loading users: ${error.message}")
-                Toast.makeText(context, "Error loading users: ${error.message}", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        })
-    }
-
-    private fun checkFriendshipStatusForUsers(currentUserId: String) {
-        for ((index, user) in userList.withIndex()) {
-            val requestsRef = database.child("Users").child(user.userId).child("Friends").child("Requests").child(currentUserId)
-            val friendRef = database.child(currentUserId).child("Friends").child("Friending").child(user.userId)
-
-            requestsRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(requestsSnapshot: DataSnapshot) {
-                    if (requestsSnapshot.exists()) {
-                        // Заявка в друзья уже отправлена
-                        adapter.markButtonAsHidden(index)
-                    } else {
-                        // Проверяем, являются ли они друзьями
-                        friendRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                            override fun onDataChange(friendSnapshot: DataSnapshot) {
-                                if (friendSnapshot.exists()) {
-                                    // Пользователи уже друзья
-                                    adapter.markButtonAsHidden(index)
-                                } else {
-                                    // Ничего не делаем, кнопка "Добавить в друзья" останется видимой
-                                    adapter.markButtonAsVisible(index)
+        // Загружаем друзей текущего пользователя
+        database.child(currentUserId).child("Friends").child("Frinding")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    userList.clear()
+                    for (friendSnapshot in snapshot.children) {
+                        val friendId = friendSnapshot.key
+                        if (friendId != null) {
+                            // Загружаем данные о друге по его ID
+                            database.child(friendId).addListenerForSingleValueEvent(object : ValueEventListener {
+                                override fun onDataChange(userSnapshot: DataSnapshot) {
+                                    val user = userSnapshot.getValue(User::class.java)
+                                    user?.let {
+                                        if (it.userId != currentUserId) { // Исключаем текущего пользователя
+                                            Log.d("FriendLoading", "Loaded friend: ${it.name}, ID: ${it.userId}")
+                                            userList.add(it)
+                                            adapter.notifyDataSetChanged()
+                                        }
+                                    }
                                 }
-                            }
 
-                            override fun onCancelled(error: DatabaseError) {
-                                Log.e("CheckFriendStatus", "Error: ${error.message}")
-                            }
-                        })
+                                override fun onCancelled(error: DatabaseError) {
+                                    Log.e("FriendLoading", "Error loading friend: ${error.message}")
+                                }
+                            })
+                        }
                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.e("CheckRequestError", "Error: ${error.message}")
+                    Log.e("FriendLoading", "Error loading friends: ${error.message}")
+                    Toast.makeText(context, "Error loading friends", Toast.LENGTH_SHORT).show()
                 }
             })
-        }
     }
 
     private fun setupSearch() {
@@ -169,31 +152,22 @@ class AllContactsFragment : Fragment() {
             return
         }
 
-        val trimmedTargetUserId = targetUserId.trim()
-        Log.d("FriendRequestDebug", "Selected user ID: $trimmedTargetUserId")
+        if (currentUserId == targetUserId) {
+            Toast.makeText(context, "You cannot add yourself as a friend", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        if (trimmedTargetUserId.isNotEmpty()) {
-            val requestsRef = FirebaseDatabase.getInstance().reference
-                .child("Users")
-                .child(trimmedTargetUserId)
-                .child("Friends")
-                .child("Requests")
-                .child(currentUserId)
-
-            requestsRef.setValue(currentUserId).addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Toast.makeText(context, "Friend request sent", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(
-                        context,
-                        "Failed to send friend request: ${task.exception?.localizedMessage}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+        val requestsRef = database.child(targetUserId).child("Friends").child("Requests").child(currentUserId)
+        requestsRef.setValue(currentUserId).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                Toast.makeText(context, "Friend request sent", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(
+                    context,
+                    "Failed to send friend request: ${task.exception?.localizedMessage}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-        } else {
-            Toast.makeText(context, "Invalid user selected. Please try again.", Toast.LENGTH_SHORT)
-                .show()
         }
     }
 
@@ -224,14 +198,8 @@ class AllContactsFragment : Fragment() {
                     .placeholder(R.drawable.ic_person_outline)
                     .into(userPhoto)
 
-                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-                Log.d("TESTFRND", "Current user ID: $currentUserId")
-
-                if (currentUserId != null && user.userId == currentUserId) {
-                    addFriendButton.visibility = View.GONE
-                } else {
-                    checkFriendStatusAndRequest(user.userId, currentUserId, addFriendButton)
-                }
+                // Для списка друзей скрываем кнопку добавления
+                addFriendButton.visibility = View.GONE
             }
         }
 
@@ -252,77 +220,5 @@ class AllContactsFragment : Fragment() {
             users = newList
             notifyDataSetChanged()
         }
-
-        fun markButtonAsHidden(index: Int) {
-            notifyItemChanged(index)
-        }
-
-        fun markButtonAsVisible(index: Int) {
-            notifyItemChanged(index)
-        }
-
-        private fun checkFriendStatusAndRequest(
-            targetUserId: String,
-            currentUserId: String?,
-            button: ImageButton
-        ) {
-            if (currentUserId != null) {
-                val requestRef = FirebaseDatabase.getInstance().reference
-                    .child("Users")
-                    .child(targetUserId)
-                    .child("Friends")
-                    .child("Requests")
-                    .child(currentUserId)
-
-                val friendRef = FirebaseDatabase.getInstance().reference
-                    .child(currentUserId)
-                    .child("Friends")
-                    .child("Friending")
-                    .child(targetUserId)
-
-                Log.d("TESTFRND", "Checking friend status for targetUserId: $targetUserId")
-                Log.d("TESTFRND", "Current user ID: $currentUserId")
-
-                // Проверяем, существует ли заявка в друзья
-                requestRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        if (snapshot.exists()) {
-                            Log.d("TESTFRND", "Friend request already sent to ID: $targetUserId")
-                            button.visibility = View.GONE
-                        } else {
-                            // Проверяем, являются ли они друзьями
-                            friendRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                                override fun onDataChange(friendSnapshot: DataSnapshot) {
-                                    if (friendSnapshot.exists()) {
-                                        Log.d("TESTFRND", "Already friends with ID: $targetUserId")
-                                        button.visibility = View.GONE
-                                    } else {
-                                        Log.d("TESTFRND", "You can add ID: $targetUserId as a friend")
-                                        button.visibility = View.VISIBLE
-                                    }
-                                }
-
-                                override fun onCancelled(error: DatabaseError) {
-                                    Log.e("CheckFriendStatus", "Error: ${error.message}")
-                                }
-                            })
-                        }
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        Log.e("CheckRequestError", "Error: ${error.message}")
-                    }
-                })
-            }
-        }
     }
 }
-
-data class User(
-    val userId: String = "",
-    val Groups: Any? = null,
-    val UserPhoto: String = "",
-    val email: String = "",
-    val name: String = "",
-    val pin: String? = null
-)

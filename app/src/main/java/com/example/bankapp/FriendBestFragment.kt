@@ -18,6 +18,13 @@ import com.google.firebase.database.*
 
 class FriendBestFragment : Fragment() {
 
+    data class User(
+        val userId: String = "",
+        val name: String = "",
+        val email: String = "",
+        val UserPhoto: String = "",
+        val pin: String? = null
+    )
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: RequestsAdapter
     private val requestList = mutableListOf<User>()
