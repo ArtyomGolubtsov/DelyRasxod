@@ -22,13 +22,13 @@ import com.google.firebase.database.*
 
 class FriendFragment : Fragment() {
 
-    // Модель пользователя
     data class User(
         val userId: String = "",
         val name: String = "",
         val email: String = "",
         val UserPhoto: String = "",
-        val pin: String? = null
+        val pin: String? = null,
+        var isBestFriend: Boolean = false
     )
 
     private lateinit var recyclerView: RecyclerView
@@ -36,6 +36,7 @@ class FriendFragment : Fragment() {
     private lateinit var searchEditText: EditText
     private val userList = mutableListOf<User>()
     private val database = FirebaseDatabase.getInstance().reference.child("Users")
+    private var currentUserId: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,6 +46,12 @@ class FriendFragment : Fragment() {
         recyclerView = view.findViewById(R.id.allContactsList)
         searchEditText = requireActivity().findViewById(R.id.membersSearch)
 
+        currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+        if (currentUserId == null) {
+            Toast.makeText(context, "User not authenticated", Toast.LENGTH_SHORT).show()
+            return view
+        }
+
         setupRecyclerView()
         loadFriends()
         setupSearch()
@@ -53,52 +60,72 @@ class FriendFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = ContactsAdapter(userList) { selectedUser ->
-            findUserIdByEmail(selectedUser.email)
-        }
+        adapter = ContactsAdapter(userList,
+            onFriendClick = { selectedUser ->
+                findUserIdByEmail(selectedUser.email)
+            },
+            onBestFriendCheck = { user, isChecked ->
+                if (isChecked) {
+                    addBestFriend(user.email)
+                } else {
+                    removeBestFriend(user.email)
+                }
+            }
+        )
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
     }
 
     private fun loadFriends() {
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-        if (currentUserId == null) {
-            Log.e("UserLoading", "User not authenticated")
-            return
-        }
-
-        // Загружаем друзей текущего пользователя
-        database.child(currentUserId).child("Friends").child("Frinding")
+        database.child(currentUserId!!).child("Friends").child("Frinding")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     userList.clear()
                     for (friendSnapshot in snapshot.children) {
                         val friendId = friendSnapshot.key
                         if (friendId != null) {
-                            // Загружаем данные о друге по его ID
-                            database.child(friendId).addListenerForSingleValueEvent(object : ValueEventListener {
-                                override fun onDataChange(userSnapshot: DataSnapshot) {
-                                    val user = userSnapshot.getValue(User::class.java)
-                                    user?.let {
-                                        if (it.userId != currentUserId) { // Исключаем текущего пользователя
-                                            Log.d("FriendLoading", "Loaded friend: ${it.name}, ID: ${it.userId}")
-                                            userList.add(it)
-                                            adapter.notifyDataSetChanged()
-                                        }
-                                    }
-                                }
-
-                                override fun onCancelled(error: DatabaseError) {
-                                    Log.e("FriendLoading", "Error loading friend: ${error.message}")
-                                }
-                            })
+                            loadFriendDetails(friendId)
                         }
                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     Log.e("FriendLoading", "Error loading friends: ${error.message}")
-                    Toast.makeText(context, "Error loading friends", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    private fun loadFriendDetails(friendId: String) {
+        database.child(friendId).addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(userSnapshot: DataSnapshot) {
+                val user = userSnapshot.getValue(User::class.java)?.copy(userId = friendId)
+                user?.let {
+                    if (it.userId != currentUserId) {
+                        checkBestFriendStatus(it) { isBestFriend ->
+                            it.isBestFriend = isBestFriend
+                            userList.add(it)
+                            adapter.notifyDataSetChanged()
+                        }
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FriendLoading", "Error loading friend details: ${error.message}")
+            }
+        })
+    }
+
+    private fun checkBestFriendStatus(user: User, callback: (Boolean) -> Unit) {
+        database.child(currentUserId!!).child("Friends").child("BestFriend").child(user.userId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    callback(snapshot.exists())
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("BestFriendCheck", "Error checking best friend status: ${error.message}")
+                    callback(false)
                 }
             })
     }
@@ -108,7 +135,6 @@ class FriendFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {
                 filter(s.toString())
             }
-
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
@@ -136,8 +162,6 @@ class FriendFragment : Fragment() {
                                 sendFriendRequest(targetUserId)
                             }
                         }
-                    } else {
-                        Toast.makeText(context, "User not found", Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -148,34 +172,89 @@ class FriendFragment : Fragment() {
     }
 
     private fun sendFriendRequest(targetUserId: String) {
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-        if (currentUserId == null) {
-            Toast.makeText(context, "User not authenticated", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         if (currentUserId == targetUserId) {
-            Toast.makeText(context, "You cannot add yourself as a friend", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "You cannot add yourself", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val requestsRef = database.child(targetUserId).child("Friends").child("Requests").child(currentUserId)
+        val requestsRef = database.child(targetUserId).child("Friends").child("Requests").child(currentUserId!!)
         requestsRef.setValue(currentUserId).addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 Toast.makeText(context, "Friend request sent", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(
-                    context,
-                    "Failed to send friend request: ${task.exception?.localizedMessage}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context, "Failed to send request", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun addBestFriend(email: String) {
+        database.orderByChild("email").equalTo(email)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists()) {
+                        for (userSnapshot in snapshot.children) {
+                            val targetUserId = userSnapshot.key
+                            if (targetUserId != null && targetUserId != currentUserId) {
+                                database.child(currentUserId!!).child("Friends").child("BestFriend")
+                                    .child(targetUserId).setValue(targetUserId)
+                                    .addOnSuccessListener {
+                                        updateBestFriendStatus(targetUserId, true)
+                                        Toast.makeText(context, "Added to Best Friends", Toast.LENGTH_SHORT).show()
+                                    }
+                                    .addOnFailureListener {
+                                        Toast.makeText(context, "Failed to add to Best Friends", Toast.LENGTH_SHORT).show()
+                                    }
+                            }
+                        }
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("BestFriendAdd", "Error finding user: ${error.message}")
+                }
+            })
+    }
+
+    private fun removeBestFriend(email: String) {
+        database.orderByChild("email").equalTo(email)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists()) {
+                        for (userSnapshot in snapshot.children) {
+                            val targetUserId = userSnapshot.key
+                            if (targetUserId != null) {
+                                database.child(currentUserId!!).child("Friends").child("BestFriend")
+                                    .child(targetUserId).removeValue()
+                                    .addOnSuccessListener {
+                                        updateBestFriendStatus(targetUserId, false)
+                                        Toast.makeText(context, "Removed from Best Friends", Toast.LENGTH_SHORT).show()
+                                    }
+                                    .addOnFailureListener {
+                                        Toast.makeText(context, "Failed to remove from Best Friends", Toast.LENGTH_SHORT).show()
+                                    }
+                            }
+                        }
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("BestFriendRemove", "Error finding user: ${error.message}")
+                }
+            })
+    }
+
+    private fun updateBestFriendStatus(userId: String, isBestFriend: Boolean) {
+        val user = userList.find { it.userId == userId }
+        user?.let {
+            it.isBestFriend = isBestFriend
+            adapter.notifyItemChanged(userList.indexOf(it))
         }
     }
 
     inner class ContactsAdapter(
         private var users: List<User>,
-        private val clickListener: (User) -> Unit
+        private val onFriendClick: (User) -> Unit,
+        private val onBestFriendCheck: (User, Boolean) -> Unit
     ) : RecyclerView.Adapter<ContactsAdapter.ViewHolder>() {
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -183,33 +262,25 @@ class FriendFragment : Fragment() {
             val userPhone: TextView = itemView.findViewById(R.id.userPhone)
             val userPhoto: ImageView = itemView.findViewById(R.id.userPhoto)
             val addFriendButton: ImageButton = itemView.findViewById(R.id.addFriendBtn)
-            val markContactBtn: CheckBox = itemView.findViewById(R.id.markContactBtn)
-
-            init {
-                addFriendButton.setOnClickListener {
-                    val user = users[adapterPosition]
-                    clickListener(user)
-                }
-
-                markContactBtn.setOnCheckedChangeListener { buttonView, isChecked ->
-                    val user = users[adapterPosition]
-                    if (isChecked) {
-                        addBestFriend(user.email)
-                    }
-                }
-            }
+            val bestFriendCheckbox: CheckBox = itemView.findViewById(R.id.markContactBtn)
 
             fun bind(user: User) {
                 userName.text = user.name
                 userPhone.text = user.email
+                addFriendButton.visibility = View.GONE
+                bestFriendCheckbox.isChecked = user.isBestFriend
 
                 Glide.with(itemView.context)
                     .load(user.UserPhoto)
                     .placeholder(R.drawable.ic_person_outline)
                     .into(userPhoto)
 
-                // Для списка друзей скрываем кнопку добавления
-                addFriendButton.visibility = View.GONE
+                bestFriendCheckbox.setOnCheckedChangeListener(null) // Сначала удаляем старый listener
+                bestFriendCheckbox.setOnCheckedChangeListener { _, isChecked ->
+                    onBestFriendCheck(user, isChecked)
+                }
+
+                itemView.setOnClickListener { onFriendClick(user) }
             }
         }
 
@@ -220,8 +291,7 @@ class FriendFragment : Fragment() {
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val user = users[position]
-            holder.bind(user)
+            holder.bind(users[position])
         }
 
         override fun getItemCount() = users.size
@@ -230,37 +300,5 @@ class FriendFragment : Fragment() {
             users = newList
             notifyDataSetChanged()
         }
-    }
-
-    private fun addBestFriend(email: String) {
-        database.orderByChild("email").equalTo(email)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-                    if (currentUserId == null) return
-
-                    if (snapshot.exists()) {
-                        for (userSnapshot in snapshot.children) {
-                            val targetUserId = userSnapshot.key
-                            if (targetUserId != null && targetUserId != currentUserId) {
-                                val bestFriendRef = database.child(currentUserId).child("Friends").child("BestFriend").child(targetUserId)
-                                bestFriendRef.setValue(targetUserId).addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        Toast.makeText(context, "Added to Best Friends", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        Toast.makeText(context, "Failed to add to Best Friends: ${task.exception?.localizedMessage}", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        Toast.makeText(context, "User not found", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e("UserSearch", "Error searching by email: ${error.message}")
-                }
-            })
     }
 }
