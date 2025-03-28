@@ -29,7 +29,8 @@ class AllContactsFragment : Fragment() {
         val UserPhoto: String = "",
         val pin: String? = null,
         var isFriend: Boolean = false,
-        var isBestFriend: Boolean = false
+        var isBestFriend: Boolean = false,
+        var hasPendingRequest: Boolean = false // Новое поле для отслеживания отправленных запросов
     )
 
     private lateinit var recyclerView: RecyclerView
@@ -84,9 +85,10 @@ class AllContactsFragment : Fragment() {
                     val user = userSnapshot.getValue(User::class.java)?.copy(userId = userSnapshot.key ?: "")
                     user?.let {
                         if (it.userId != currentUserId) {
-                            checkUserStatus(it) { isFriend, isBestFriend ->
+                            checkUserStatus(it) { isFriend, isBestFriend, hasPendingRequest ->
                                 it.isFriend = isFriend
                                 it.isBestFriend = isBestFriend
+                                it.hasPendingRequest = hasPendingRequest
                                 userList.add(it)
                                 adapter.notifyDataSetChanged()
                             }
@@ -102,31 +104,45 @@ class AllContactsFragment : Fragment() {
         })
     }
 
-    private fun checkUserStatus(user: User, callback: (Boolean, Boolean) -> Unit) {
+    private fun checkUserStatus(user: User, callback: (Boolean, Boolean, Boolean) -> Unit) {
         if (currentUserId == null) {
-            callback(false, false)
+            callback(false, false, false)
             return
         }
 
+        // Проверяем, является ли пользователь другом
         database.child(currentUserId!!).child("Friends").child("Frinding").child(user.userId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(friendSnapshot: DataSnapshot) {
                     val isFriend = friendSnapshot.exists()
 
+                    // Проверяем, является ли пользователь лучшим другом
                     database.child(currentUserId!!).child("Friends").child("BestFriend").child(user.userId)
                         .addListenerForSingleValueEvent(object : ValueEventListener {
                             override fun onDataChange(bestFriendSnapshot: DataSnapshot) {
-                                callback(isFriend, bestFriendSnapshot.exists())
+                                val isBestFriend = bestFriendSnapshot.exists()
+
+                                // Проверяем, отправили ли мы запрос этому пользователю
+                                database.child(user.userId).child("Friends").child("Requests").child(currentUserId!!)
+                                    .addListenerForSingleValueEvent(object : ValueEventListener {
+                                        override fun onDataChange(requestSnapshot: DataSnapshot) {
+                                            callback(isFriend, isBestFriend, requestSnapshot.exists())
+                                        }
+
+                                        override fun onCancelled(error: DatabaseError) {
+                                            callback(isFriend, isBestFriend, false)
+                                        }
+                                    })
                             }
 
                             override fun onCancelled(error: DatabaseError) {
-                                callback(isFriend, false)
+                                callback(isFriend, false, false)
                             }
                         })
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    callback(false, false)
+                    callback(false, false, false)
                 }
             })
     }
@@ -134,7 +150,6 @@ class AllContactsFragment : Fragment() {
     private fun addToBestFriends(targetUserId: String) {
         if (currentUserId == null) return
 
-        // Проверяем, что пользователь в друзьях перед добавлением в BestFriend
         database.child(currentUserId!!).child("Friends").child("Frinding").child(targetUserId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -229,11 +244,21 @@ class AllContactsFragment : Fragment() {
             .setValue(currentUserId)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
+                    // Обновляем статус запроса в локальном списке
+                    updateRequestStatus(targetUserId, true)
                     Toast.makeText(context, "Friend request sent", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, "Failed to send request", Toast.LENGTH_SHORT).show()
                 }
             }
+    }
+
+    private fun updateRequestStatus(userId: String, hasRequest: Boolean) {
+        val user = userList.find { it.userId == userId }
+        user?.let {
+            it.hasPendingRequest = hasRequest
+            adapter.notifyItemChanged(userList.indexOf(it))
+        }
     }
 
     inner class ContactsAdapter(
@@ -258,7 +283,19 @@ class AllContactsFragment : Fragment() {
                     .placeholder(R.drawable.ic_person_outline)
                     .into(userPhoto)
 
-                addFriendButton.visibility = if (user.isFriend) View.GONE else View.VISIBLE
+                // Скрываем кнопку, если пользователь уже в друзьях или есть отправленный запрос
+                if (user.isFriend) {
+                    addFriendButton.visibility = View.GONE
+                } else {
+                    addFriendButton.visibility = View.VISIBLE
+                    // Изменяем фон кнопки в зависимости от состояния запроса
+                    addFriendButton.setBackgroundResource(
+                        if (user.hasPendingRequest) R.drawable.activity_item_bg // фон для отправленного запроса
+                        else R.drawable.btn_blue_bg // обычный фон
+                    )
+                }
+
+
 
                 bestFriendCheckbox.isChecked = user.isBestFriend
                 bestFriendCheckbox.visibility = if (user.isFriend) View.VISIBLE else View.GONE
