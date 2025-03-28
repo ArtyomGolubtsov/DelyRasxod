@@ -13,7 +13,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 1
-        versionName = "23.21.11"
+        versionName = "Терех самый лучший человек в мире"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
