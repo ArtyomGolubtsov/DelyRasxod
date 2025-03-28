@@ -21,7 +21,7 @@ import com.google.firebase.database.*
 
 class AllContactsFragment : Fragment() {
 
-    // Модель пользователя должна быть определена в этом же файле или импортирована
+    // Модель пользователя
     data class User(
         val userId: String = "",
         val name: String = "",
@@ -29,6 +29,7 @@ class AllContactsFragment : Fragment() {
         val UserPhoto: String = "",
         val pin: String? = null
     )
+
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ContactsAdapter
     private lateinit var searchEditText: EditText
@@ -44,7 +45,7 @@ class AllContactsFragment : Fragment() {
         searchEditText = requireActivity().findViewById(R.id.membersSearch)
 
         setupRecyclerView()
-        loadFriends()
+        loadAllUsers() // Загружаем всех пользователей
         setupSearch()
 
         return view
@@ -58,47 +59,29 @@ class AllContactsFragment : Fragment() {
         recyclerView.adapter = adapter
     }
 
-    private fun loadFriends() {
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-        if (currentUserId == null) {
-            Log.e("UserLoading", "User not authenticated")
-            return
-        }
-
-        // Загружаем друзей текущего пользователя
-        database.child(currentUserId).child("Friends").child("Frinding")
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    userList.clear()
-                    for (friendSnapshot in snapshot.children) {
-                        val friendId = friendSnapshot.key
-                        if (friendId != null) {
-                            // Загружаем данные о друге по его ID
-                            database.child(friendId).addListenerForSingleValueEvent(object : ValueEventListener {
-                                override fun onDataChange(userSnapshot: DataSnapshot) {
-                                    val user = userSnapshot.getValue(User::class.java)
-                                    user?.let {
-                                        if (it.userId != currentUserId) { // Исключаем текущего пользователя
-                                            Log.d("FriendLoading", "Loaded friend: ${it.name}, ID: ${it.userId}")
-                                            userList.add(it)
-                                            adapter.notifyDataSetChanged()
-                                        }
-                                    }
-                                }
-
-                                override fun onCancelled(error: DatabaseError) {
-                                    Log.e("FriendLoading", "Error loading friend: ${error.message}")
-                                }
-                            })
+    private fun loadAllUsers() {
+        database.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                userList.clear()
+                for (userSnapshot in snapshot.children) {
+                    val user = userSnapshot.getValue(User::class.java)
+                    user?.let {
+                        // Исключаем текущего пользователя
+                        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                        if (it.userId != currentUserId) {
+                            Log.d("UserLoading", "Loaded user: ${it.name}, ID: ${it.userId}")
+                            userList.add(it)
                         }
                     }
                 }
+                adapter.notifyDataSetChanged()
+            }
 
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e("FriendLoading", "Error loading friends: ${error.message}")
-                    Toast.makeText(context, "Error loading friends", Toast.LENGTH_SHORT).show()
-                }
-            })
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("UserLoading", "Error loading users: ${error.message}")
+                Toast.makeText(context, "Error loading users", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun setupSearch() {
@@ -199,7 +182,7 @@ class AllContactsFragment : Fragment() {
                     .into(userPhoto)
 
                 // Для списка друзей скрываем кнопку добавления
-                addFriendButton.visibility = View.GONE
+                addFriendButton.visibility = View.VISIBLE // Показываем кнопку добавления
             }
         }
 
