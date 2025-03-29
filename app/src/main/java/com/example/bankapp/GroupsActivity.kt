@@ -51,7 +51,14 @@ class GroupAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.activity_item, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.activity_item, parent, false)
+
+        // Устанавливаем отступы для каждого элемента
+        val params = view.layoutParams as ViewGroup.MarginLayoutParams
+        params.setMargins(16, 16, 16, 16)
+        view.layoutParams = params
+
         return GroupViewHolder(view)
     }
 
@@ -87,18 +94,15 @@ class GroupViewModel : ViewModel() {
     fun loadUserGroups() {
         val currentUser = auth.currentUser ?: return
 
-        // 1. Сначала получаем список ID групп пользователя
         database.child("Users").child(currentUser.uid).child("Groups")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(userGroupsSnapshot: DataSnapshot) {
                     val groupIds = mutableListOf<String>()
 
-                    // Собираем все ID групп пользователя
                     for (groupSnapshot in userGroupsSnapshot.children) {
                         groupSnapshot.key?.let { groupIds.add(it) }
                     }
 
-                    // 2. Затем загружаем полные данные каждой группы из /Groups
                     loadGroupsData(groupIds)
                 }
 
@@ -129,7 +133,6 @@ class GroupViewModel : ViewModel() {
                         groups.add(GroupItem(groupId, groupName, categories, imageUrl))
                         loadedCount++
 
-                        // Когда загрузили все группы, обновляем LiveData
                         if (loadedCount == groupIds.size) {
                             _groupList.postValue(groups)
                         }
@@ -174,6 +177,11 @@ class GroupsActivity : AppCompatActivity(), GroupAdapter.OnItemClickListener {
         // Инициализация RecyclerView
         recyclerView = findViewById(R.id.groupsList)
         recyclerView.layoutManager = LinearLayoutManager(this)
+
+        // Устанавливаем отступы для RecyclerView
+        recyclerView.setPadding(16, 16, 16, 16)
+        recyclerView.clipToPadding = false
+
         adapter = GroupAdapter(mutableListOf(), this)
         recyclerView.adapter = adapter
 

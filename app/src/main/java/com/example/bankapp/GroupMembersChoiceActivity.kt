@@ -28,7 +28,7 @@ class GroupMembersChoiceActivity : AppCompatActivity() {
     private lateinit var mainTitle: TextView
     private lateinit var tabLayout: TabLayout
     private lateinit var viewPager: ViewPager2
-    private lateinit var adapter: ViewPagerAdapterContacts
+    private lateinit var adapter: ViewPagerAdapterGroupContacts
     private lateinit var groupId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +46,7 @@ class GroupMembersChoiceActivity : AppCompatActivity() {
         // Инициализация TabLayout и ViewPager2
         tabLayout = findViewById(R.id.tabLayout)
         viewPager = findViewById(R.id.viewPager)
-        adapter = ViewPagerAdapterContacts(this)
+        adapter = ViewPagerAdapterGroupContacts(this)
         viewPager.adapter = adapter
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = if (position == 0) "Все контакты" else "Избранное"
