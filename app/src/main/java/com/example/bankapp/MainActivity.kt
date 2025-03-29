@@ -26,26 +26,22 @@ import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
-import java.io.InputStream
 
 // Класс для группы
 open class ActivityItem(
-    val id: String,  // Добавляем поле id
+    val id: String,
     val name: String,
     val category: String,
     val imageUrl: String
 ) {
-    // Дополнительный конструктор для использования по умолчанию значений
     constructor(id: String, name: String, category: String) : this(id, name, category, "drawable/logo")
 }
 
 // Статический элемент для отображения, если нет групп
 class StaticActivityItem(
-    imageUrl: String = "drawable/logo"  // Используется изображение по умолчанию здесь
+    imageUrl: String = "drawable/logo"
 ) : ActivityItem("0", "У вас еще нет групп", "Создайте их!", imageUrl)
 
-
-// item decoration for recycler view
 class SpaceItemDecoration(private val space: Int) : RecyclerView.ItemDecoration() {
     override fun getItemOffsets(
         outRect: Rect,
@@ -62,7 +58,6 @@ class SpaceItemDecoration(private val space: Int) : RecyclerView.ItemDecoration(
     }
 }
 
-// Custom adapter for displaying ActivityItems
 class ActivityAdapter(private val activityList: List<ActivityItem>) : RecyclerView.Adapter<ActivityAdapter.ActivityViewHolder>() {
 
     class ActivityViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -96,17 +91,15 @@ class ActivityAdapter(private val activityList: List<ActivityItem>) : RecyclerVi
             holder.itemView.setOnClickListener {
                 val context = holder.itemView.context
                 val intent = Intent(context, GroupInfoActivity::class.java)
-                intent.putExtra("GROUP_ID", currentItem.id) // Передаем реальный ID группы
+                intent.putExtra("GROUP_ID", currentItem.id)
                 context.startActivity(intent)
             }
         }
     }
 
-
     override fun getItemCount() = activityList.size
 }
 
-// Main activity for the application
 class MainActivity : AppCompatActivity() {
     private lateinit var userNameTextView: TextView
     private lateinit var database: DatabaseReference
@@ -128,15 +121,13 @@ class MainActivity : AppCompatActivity() {
 
         val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
 
-
-
         val usersPhoto: ImageView = findViewById(R.id.userPhoto)
         usersPhoto.setOnClickListener {
             openGallery()
             usersPhoto.startAnimation(clickAnimation)
         }
 
-        // Нижнее меню----------------------------------------
+        // Нижнее меню
         val homeBtnIcon: ImageView = findViewById(R.id.homeBtnIcon)
         homeBtnIcon.setImageResource(R.drawable.ic_home_outline_active)
         val homeTxt: TextView = findViewById(R.id.homeBtnText)
@@ -149,19 +140,20 @@ class MainActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
             mainBtn.startAnimation(clickAnimation)
         }
+
         val groupsBtn: LinearLayout = findViewById(R.id.groupsBtn)
         groupsBtn.setOnClickListener {
             startActivity(Intent(this, GroupsActivity::class.java))
             groupsBtn.startAnimation(clickAnimation)
             overridePendingTransition(0, 0)
         }
+
         val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)
         contactsBtn.setOnClickListener {
             startActivity(Intent(this, FriendActivity::class.java))
             contactsBtn.startAnimation(clickAnimation)
             overridePendingTransition(0, 0)
         }
-        //---------------------------------------------------------
 
         val TextAllGroup: TextView = findViewById(R.id.allActivitiesLink)
         TextAllGroup.setOnClickListener {
@@ -185,22 +177,20 @@ class MainActivity : AppCompatActivity() {
         val recyclerView: RecyclerView = findViewById(R.id.activityList)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Initialize activity list
         activityList = mutableListOf()
         adapter = ActivityAdapter(activityList)
         recyclerView.adapter = adapter
 
-        // Add spacing to RecyclerView
         val spacingInPixels = 16
         recyclerView.addItemDecoration(SpaceItemDecoration(spacingInPixels))
 
         auth = FirebaseAuth.getInstance()
-        database = FirebaseDatabase.getInstance().getReference("Users")
+        database = FirebaseDatabase.getInstance().reference
 
         val currentUser = auth.currentUser
         currentUser?.let {
             loadUserName(it.uid)
-            loadUserPhoto(it.uid) // Ensure this function is defined
+            loadUserPhoto(it.uid)
             loadUserActivities(it.uid)
         }
 
@@ -212,64 +202,97 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadUserActivities(userId: String) {
-        database.child(userId).child("Groups").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                activityList.clear() // очищаем список перед загрузкой
+        // 1. Сначала получаем список ID групп пользователя
+        database.child("Users").child(userId).child("Groups")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(userGroupsSnapshot: DataSnapshot) {
+                    activityList.clear()
+                    val groupIds = mutableListOf<String>()
 
-                for (groupSnapshot in snapshot.children) {
-                    val groupId = groupSnapshot.key ?: "0" // Здесь вы получаете реальный ID
-                    val groupName = groupSnapshot.child("title").getValue(String::class.java) ?: "Без названия"
-                    val categories = groupSnapshot.child("categories").children.joinToString(", ") { it.getValue(String::class.java) ?: "" }
-                    val imageUrl = groupSnapshot.child("imageUri").getValue(String::class.java) ?: "drawable/logo"
+                    // Собираем все ID групп пользователя
+                    for (groupSnapshot in userGroupsSnapshot.children) {
+                        groupSnapshot.key?.let { groupIds.add(it) }
+                    }
 
-                    // Добавление в список активностей с использованием реального ID
-                    activityList.add(ActivityItem(groupId, groupName, categories, imageUrl))
+                    if (groupIds.isEmpty()) {
+                        activityList.add(StaticActivityItem())
+                        adapter.notifyDataSetChanged()
+                        return
+                    }
+
+                    // 2. Затем загружаем полные данные каждой группы из /Groups
+                    loadGroupsData(groupIds)
                 }
 
-                // Добавляем StaticActivityItem, только если групп нет
-                if (activityList.isEmpty()) {
-                    activityList.add(StaticActivityItem()) // Здесь будет использоваться дефолтное значение
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@MainActivity, "Ошибка загрузки списка групп", Toast.LENGTH_SHORT).show()
                 }
-
-                adapter.notifyDataSetChanged() // Обновляем адаптер после загрузки данных
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@MainActivity, "Ошибка загрузки активностей", Toast.LENGTH_SHORT).show()
-            }
-        })
+            })
     }
 
+    private fun loadGroupsData(groupIds: List<String>) {
+        var loadedCount = 0
+        val totalGroups = groupIds.size
+
+        for (groupId in groupIds) {
+            database.child("Groups").child(groupId)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(groupSnapshot: DataSnapshot) {
+                        val groupName = groupSnapshot.child("title").getValue(String::class.java) ?: "Без названия"
+                        val categories = groupSnapshot.child("categories").children
+                            .joinToString(", ") { it.getValue(String::class.java) ?: "" }
+                        val imageUrl = groupSnapshot.child("imageUri").getValue(String::class.java) ?: "drawable/logo"
+
+                        activityList.add(ActivityItem(groupId, groupName, categories, imageUrl))
+                        loadedCount++
+
+                        if (loadedCount == totalGroups) {
+                            adapter.notifyDataSetChanged()
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        loadedCount++
+                        if (loadedCount == totalGroups) {
+                            adapter.notifyDataSetChanged()
+                        }
+                        Toast.makeText(this@MainActivity, "Ошибка загрузки данных группы", Toast.LENGTH_SHORT).show()
+                    }
+                })
+        }
+    }
 
     private fun loadUserName(userId: String) {
-        database.child(userId).child("name").addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                userNameTextView.text = snapshot.getValue(String::class.java) ?: "Имя не найдено"
-            }
+        database.child("Users").child(userId).child("name")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    userNameTextView.text = snapshot.getValue(String::class.java) ?: "Имя не найдено"
+                }
 
-            override fun onCancelled(error: DatabaseError) {
-                userNameTextView.text = "Ошибка загрузки имени"
-            }
-        })
+                override fun onCancelled(error: DatabaseError) {
+                    userNameTextView.text = "Ошибка загрузки имени"
+                }
+            })
     }
 
     private fun loadUserPhoto(userId: String) {
-        database.child(userId).child("UserPhoto").addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val photoUrl = snapshot.getValue(String::class.java)
-                val usersPhoto: ImageView = findViewById(R.id.userPhoto)
-                if (photoUrl != null) {
-                    Glide.with(this@MainActivity)
-                        .load(photoUrl)
-                        .placeholder(R.drawable.placeholder)
-                        .into(usersPhoto)
+        database.child("Users").child(userId).child("UserPhoto")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val photoUrl = snapshot.getValue(String::class.java)
+                    val usersPhoto: ImageView = findViewById(R.id.userPhoto)
+                    if (photoUrl != null) {
+                        Glide.with(this@MainActivity)
+                            .load(photoUrl)
+                            .placeholder(R.drawable.placeholder)
+                            .into(usersPhoto)
+                    }
                 }
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@MainActivity, "Ошибка загрузки фото", Toast.LENGTH_SHORT).show()
-            }
-        })
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@MainActivity, "Ошибка загрузки фото", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
 
     private fun openGallery() {
@@ -316,7 +339,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveUserPhotoUrlToDatabase(userId: String, photoUrl: String) {
-        database.child(userId).child("UserPhoto").setValue(photoUrl)
+        database.child("Users").child(userId).child("UserPhoto").setValue(photoUrl)
             .addOnSuccessListener {
                 Toast.makeText(this, "Фото успешно загружено!", Toast.LENGTH_SHORT).show()
             }.addOnFailureListener {

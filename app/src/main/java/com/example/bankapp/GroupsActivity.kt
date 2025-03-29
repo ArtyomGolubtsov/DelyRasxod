@@ -29,7 +29,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 
 data class GroupItem(
-    val id: String, // Идентификатор группы
+    val id: String,
     val name: String,
     val categories: String,
     val imageUrl: String
@@ -60,60 +60,92 @@ class GroupAdapter(
         holder.groupName.text = currentItem.name
         holder.groupCategory.text = currentItem.categories
 
-        // Загрузка изображения через Glide
         Glide.with(holder.itemView.context)
             .load(currentItem.imageUrl)
             .placeholder(R.drawable.placeholder)
             .into(holder.groupImage)
 
         holder.itemView.setOnClickListener {
-            listener.onItemClick(currentItem.id) // Передаем ID группы
+            listener.onItemClick(currentItem.id)
         }
     }
 
     override fun getItemCount() = groupList.size
 
-    // Обновление списка групп
     fun updateList(newList: List<GroupItem>) {
         groupList = newList
         notifyDataSetChanged()
     }
 }
 
-// ViewModel для групп
 class GroupViewModel : ViewModel() {
     private val _groupList = MutableLiveData<MutableList<GroupItem>>()
     val groupList: LiveData<MutableList<GroupItem>> = _groupList
-    private val database: DatabaseReference = FirebaseDatabase.getInstance().getReference("Users")
+    private val database: DatabaseReference = FirebaseDatabase.getInstance().reference
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
-    // Загрузка групп пользователя из Firebase
     fun loadUserGroups() {
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            database.child(currentUser.uid).child("Groups").addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val groups = mutableListOf<GroupItem>()
-                    for (groupSnapshot in snapshot.children) {
-                        val groupId = groupSnapshot.key ?: "0" // Получаем ключ записи как ID группы
-                        val groupName = groupSnapshot.child("title").getValue(String::class.java) ?: "Без названия"
-                        val categories = groupSnapshot.child("categories").children.joinToString(", ") { it.getValue(String::class.java) ?: "" }
-                        val imageUrl = groupSnapshot.child("imageUri").getValue(String::class.java) ?: ""
+        val currentUser = auth.currentUser ?: return
 
-                        groups.add(GroupItem(groupId, groupName, categories, imageUrl))
+        // 1. Сначала получаем список ID групп пользователя
+        database.child("Users").child(currentUser.uid).child("Groups")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(userGroupsSnapshot: DataSnapshot) {
+                    val groupIds = mutableListOf<String>()
+
+                    // Собираем все ID групп пользователя
+                    for (groupSnapshot in userGroupsSnapshot.children) {
+                        groupSnapshot.key?.let { groupIds.add(it) }
                     }
-                    _groupList.value = groups // Обновляем LiveData
+
+                    // 2. Затем загружаем полные данные каждой группы из /Groups
+                    loadGroupsData(groupIds)
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    // Обработать ошибку загрузки
+                    // Обработка ошибки
                 }
             })
+    }
+
+    private fun loadGroupsData(groupIds: List<String>) {
+        val groups = mutableListOf<GroupItem>()
+        var loadedCount = 0
+
+        if (groupIds.isEmpty()) {
+            _groupList.postValue(groups)
+            return
+        }
+
+        for (groupId in groupIds) {
+            database.child("Groups").child(groupId)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(groupSnapshot: DataSnapshot) {
+                        val groupName = groupSnapshot.child("title").getValue(String::class.java) ?: "Без названия"
+                        val categories = groupSnapshot.child("categories").children
+                            .joinToString(", ") { it.getValue(String::class.java) ?: "" }
+                        val imageUrl = groupSnapshot.child("imageUri").getValue(String::class.java) ?: ""
+
+                        groups.add(GroupItem(groupId, groupName, categories, imageUrl))
+                        loadedCount++
+
+                        // Когда загрузили все группы, обновляем LiveData
+                        if (loadedCount == groupIds.size) {
+                            _groupList.postValue(groups)
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        loadedCount++
+                        if (loadedCount == groupIds.size) {
+                            _groupList.postValue(groups)
+                        }
+                    }
+                })
         }
     }
 }
 
-// Основная активность для групп
 class GroupsActivity : AppCompatActivity(), GroupAdapter.OnItemClickListener {
     private lateinit var database: DatabaseReference
     private lateinit var auth: FirebaseAuth
@@ -142,30 +174,24 @@ class GroupsActivity : AppCompatActivity(), GroupAdapter.OnItemClickListener {
         // Инициализация RecyclerView
         recyclerView = findViewById(R.id.groupsList)
         recyclerView.layoutManager = LinearLayoutManager(this)
-
-        // Инициализация списка групп и адаптера
-        adapter = GroupAdapter(mutableListOf(), this) // Передаем текущую активность как слушатель
+        adapter = GroupAdapter(mutableListOf(), this)
         recyclerView.adapter = adapter
 
-        // Инициализация View для показа отсутствия групп
         noGroupsBox = findViewById(R.id.noGroupsBox)
         noGroupsBox.visibility = View.GONE
 
-        // Инициализация Firebase Auth и Database
         auth = FirebaseAuth.getInstance()
-        database = FirebaseDatabase.getInstance().getReference("Users")
+        database = FirebaseDatabase.getInstance().reference
 
-        // Инициализация ViewModel
         viewModel = ViewModelProvider(this).get(GroupViewModel::class.java)
         viewModel.loadUserGroups()
 
-        // Наблюдение за изменениями в списке групп
         viewModel.groupList.observe(this, Observer { groupList ->
             adapter.updateList(groupList)
             updateVisibility(groupList)
         })
 
-        // Нижнее меню----------------------------------------
+        // Нижнее меню
         val icogroupsBtn: ImageView = findViewById(R.id.groupsBtnIcon)
         icogroupsBtn.setImageResource(R.drawable.ic_groups_outline_active)
         val groupTxt: TextView = findViewById(R.id.groupsBtnText)
@@ -178,6 +204,7 @@ class GroupsActivity : AppCompatActivity(), GroupAdapter.OnItemClickListener {
             overridePendingTransition(0, 0)
             mainBtn.startAnimation(clickAnimation)
         }
+
         val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)
         contactsBtn.setOnClickListener {
             startActivity(Intent(this, ContactActivity::class.java))
@@ -185,7 +212,6 @@ class GroupsActivity : AppCompatActivity(), GroupAdapter.OnItemClickListener {
             overridePendingTransition(0, 0)
         }
 
-        // Кнопка для создания новых групп
         val createGroupsBtn: Button = findViewById(R.id.addGroupBtn)
         createGroupsBtn.setOnClickListener {
             createGroupsBtn.startAnimation(clickAnimation)
@@ -202,10 +228,6 @@ class GroupsActivity : AppCompatActivity(), GroupAdapter.OnItemClickListener {
             overridePendingTransition(0, 0)
         }
 
-        // Использование без ресурсов
-        val spacingInPixels = 16 // Укажите нужное значение в пикселях
-        recyclerView.addItemDecoration(SpaceItemDecoration(spacingInPixels))
-
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -213,22 +235,20 @@ class GroupsActivity : AppCompatActivity(), GroupAdapter.OnItemClickListener {
         }
     }
 
-    // Реализация метода onItemClick
     override fun onItemClick(groupId: String) {
         val intent = Intent(this, GroupInfoActivity::class.java)
-        intent.putExtra("GROUP_ID", groupId) // Передаем реальный ID группы
-        startActivity(intent) // Открываем GroupInfoActivity
+        intent.putExtra("GROUP_ID", groupId)
+        startActivity(intent)
         overridePendingTransition(0, 0)
     }
 
-    // Обновление видимости списка и блока отсутствия групп
     private fun updateVisibility(groupList: List<GroupItem>) {
         if (groupList.isNotEmpty()) {
-            noGroupsBox.visibility = View.GONE // Скрываем блок для отсутствия групп
-            recyclerView.visibility = View.VISIBLE // Показываем список групп
+            noGroupsBox.visibility = View.GONE
+            recyclerView.visibility = View.VISIBLE
         } else {
-            noGroupsBox.visibility = View.VISIBLE // Показываем блок, если групп нет
-            recyclerView.visibility = View.GONE // Скрываем список групп
+            noGroupsBox.visibility = View.VISIBLE
+            recyclerView.visibility = View.GONE
         }
     }
 }

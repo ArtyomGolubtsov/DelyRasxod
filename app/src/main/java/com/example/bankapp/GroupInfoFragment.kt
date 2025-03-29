@@ -61,7 +61,7 @@ class GroupInfoFragment : Fragment() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
             // Запрос к базе данных Firebase
-            database.child("Users").child(userId).child("Groups").child(groupId)
+            database.child("Groups").child(groupId)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
 

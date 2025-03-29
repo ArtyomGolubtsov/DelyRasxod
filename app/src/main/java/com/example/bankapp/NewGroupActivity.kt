@@ -40,11 +40,11 @@ data class GroupActivityItem(val name: String, val category: String, val imageRe
 
 // Данные о группе
 data class Group(
-    val id: String = "",
     val title: String = "",
     val description: String = "",
     val imageUri: String = "",
-    val categories: List<String> = emptyList()
+    val categories: List<String> = emptyList(),
+    val admin: String = "" // Добавлено поле для хранения ID администратора
 )
 
 // Адаптер для группы активностей
@@ -146,7 +146,6 @@ class GroupActivityAdapter(
             onCategoryButtonClick(holder.itemView.context, holder.ctgrTravelBtn, color, "Путешествия")
         }
 
-        // Активация кнопок на основе выбранных категорий
         selectedCategories.forEach { category ->
             when (category) {
                 "Событие" -> holder.ctgrEventBtn?.backgroundTintList =
@@ -166,7 +165,6 @@ class GroupActivityAdapter(
     override fun getItemCount() = activityList.size
 }
 
-// Класс NewGroupActivity
 class NewGroupActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
@@ -284,7 +282,7 @@ class NewGroupActivity : AppCompatActivity() {
     }
 
     private fun getGroupDetailsFromDatabase(groupId: String) {
-        val database = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId")
+        val database = FirebaseDatabase.getInstance().getReference("Groups/$groupId")
         database.get().addOnSuccessListener { dataSnapshot ->
             val title = dataSnapshot.child("title").getValue(String::class.java)
             val description = dataSnapshot.child("description").getValue(String::class.java)
@@ -315,11 +313,10 @@ class NewGroupActivity : AppCompatActivity() {
                 groupImage.setImageResource(R.drawable.placeholder)
             }
 
-            // Обновите адаптер с загруженными категориями
             selectedCategories = selectedCategoriesList
             (recyclerView.adapter as? GroupActivityAdapter)?.apply {
                 selectedCategories = selectedCategories
-                notifyDataSetChanged() // Обновите состояние адаптера
+                notifyDataSetChanged()
             }
         }.addOnFailureListener {
             groupTitle.setText("Ошибка загрузки данных группы")
@@ -366,7 +363,7 @@ class NewGroupActivity : AppCompatActivity() {
                 imageRef.putFile(imageUri!!)
                     .addOnSuccessListener {
                         imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                            saveChangesToDatabase(title, description, downloadUrl.toString(), selectedCategories)
+                            saveChangesToDatabase(title, description, downloadUrl.toString(), selectedCategories, groupId!!)
                         }
                     }.addOnFailureListener {
                         Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
@@ -384,9 +381,8 @@ class NewGroupActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveChangesToDatabase(title: String, description: String, imageUrl: String, categories: List<String>) {
-        val groupId = intent.getStringExtra("GROUP_ID") ?: return
-        val database = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId")
+    private fun saveChangesToDatabase(title: String, description: String, imageUrl: String, categories: List<String>, groupId: String) {
+        val groupsRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId")
         val updates = mapOf(
             "title" to title,
             "description" to description,
@@ -394,7 +390,7 @@ class NewGroupActivity : AppCompatActivity() {
             "categories" to categories
         )
 
-        database.updateChildren(updates)
+        groupsRef.updateChildren(updates)
             .addOnSuccessListener {
                 Toast.makeText(this, "Изменения сохранены", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, GroupInfoActivity::class.java).apply {
@@ -407,28 +403,41 @@ class NewGroupActivity : AppCompatActivity() {
             }
     }
 
-    private fun hashString(input: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        return digest.digest(input.toByteArray()).joinToString("") { String.format("%02x", it) }
-    }
-
     private fun saveGroupToDatabase(title: String, description: String, imageUrl: String) {
         val groupId = UUID.randomUUID().toString()
         val group = Group(
-            id = groupId,
             title = title,
             description = description,
             imageUri = imageUrl,
-            categories = selectedCategories
+            categories = selectedCategories,
+            admin = userId // Сохраняем ID администратора
         )
-        val database = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups")
 
-        database.child(groupId).setValue(group)
+        // Сохраняем полную информацию о группе в /Groups/{groupId}
+        val groupsRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId")
+
+        // Сохраняем только ID группы в /Users/{userId}/Groups/{groupId}
+        val userGroupsRef = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId")
+
+        groupsRef.setValue(group)
             .addOnSuccessListener {
-                Toast.makeText(this, "Группа успешно создана", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this, GroupMembersChoiceActivity::class.java))
-            }.addOnFailureListener {
+                // После успешного сохранения группы, сохраняем ссылку в пользователе
+                userGroupsRef.setValue(groupId)
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Группа успешно создана", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this, GroupMembersChoiceActivity::class.java))
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Ошибка при сохранении ссылки на группу", Toast.LENGTH_SHORT).show()
+                    }
+            }
+            .addOnFailureListener {
                 Toast.makeText(this, "Ошибка при создании группы", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    private fun hashString(input: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        return digest.digest(input.toByteArray()).joinToString("") { String.format("%02x", it) }
     }
 }

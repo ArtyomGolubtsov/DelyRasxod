@@ -178,7 +178,7 @@ class GroupInfoActivity : AppCompatActivity() {
     private fun loadGroupData(groupId: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
-            database.child("Users").child(userId).child("Groups").child(groupId)
+            database.child("Groups").child(groupId)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         val groupTitle = snapshot.child("title").getValue(String::class.java)
