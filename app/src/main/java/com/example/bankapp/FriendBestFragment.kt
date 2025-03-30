@@ -151,7 +151,7 @@ class FriendBestFragment : Fragment() {
                 bestFriendCheckbox.isEnabled = false // Делаем невозможным снятие отметки
 
                 removeButton.visibility = View.GONE
-
+                removeButton.isEnabled = false
 
                 Glide.with(itemView.context)
                     .load(user.UserPhoto)

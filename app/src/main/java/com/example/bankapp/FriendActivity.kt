@@ -127,7 +127,7 @@ class FriendActivity : AppCompatActivity() {
                         }
                     }
                 } else {
-                    mainTitle.text = "Выбор участников" // Вернуть заголовок, если никого не нашли
+                    mainTitle.text = "Контакты" // Вернуть заголовок, если никого не нашли
                 }
             }
 

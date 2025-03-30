@@ -268,6 +268,7 @@ class FriendFragment : Fragment() {
                 userName.text = user.name
                 userPhone.text = user.email
                 addFriendButton.visibility = View.GONE
+                addFriendButton.isEnabled = false
                 bestFriendCheckbox.isChecked = user.isBestFriend
 
                 Glide.with(itemView.context)

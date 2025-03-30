@@ -410,22 +410,23 @@ class NewGroupActivity : AppCompatActivity() {
             description = description,
             imageUri = imageUrl,
             categories = selectedCategories,
-            admin = userId // Сохраняем ID администратора
+            admin = userId
         )
 
-        // Сохраняем полную информацию о группе в /Groups/{groupId}
         val groupsRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId")
-
-        // Сохраняем только ID группы в /Users/{userId}/Groups/{groupId}
         val userGroupsRef = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId")
 
         groupsRef.setValue(group)
             .addOnSuccessListener {
-                // После успешного сохранения группы, сохраняем ссылку в пользователе
-                userGroupsRef.setValue(groupId)
+                userGroupsRef.setValue(true)
                     .addOnSuccessListener {
                         Toast.makeText(this, "Группа успешно создана", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, GroupMembersChoiceActivity::class.java))
+                        // Запускаем GroupMembersChoiceActivity с передачей groupId
+                        val intent = Intent(this, GroupMembersChoiceActivity::class.java).apply {
+                            putExtra("GROUP_ID", groupId)
+                        }
+                        startActivity(intent)
+                        finish()
                     }
                     .addOnFailureListener {
                         Toast.makeText(this, "Ошибка при сохранении ссылки на группу", Toast.LENGTH_SHORT).show()

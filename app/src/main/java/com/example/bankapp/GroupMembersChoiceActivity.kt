@@ -43,13 +43,19 @@ class GroupMembersChoiceActivity : AppCompatActivity() {
             insets
         }
 
+        // Получаем ID группы из интента
+        groupId = intent.getStringExtra("GROUP_ID") ?: ""
+
         // Инициализация TabLayout и ViewPager2
         tabLayout = findViewById(R.id.tabLayout)
         viewPager = findViewById(R.id.viewPager)
-        adapter = ViewPagerAdapterGroupContacts(this)
+
+        // Передаем groupId в адаптер
+        adapter = ViewPagerAdapterGroupContacts(this, groupId)
         viewPager.adapter = adapter
+
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-            tab.text = if (position == 0) "Все контакты" else "Избранное"
+            tab.text = if (position == 0) "Все контакты" else "Избранные"
         }.attach()
 
         // Инициализация базы данных
@@ -72,8 +78,6 @@ class GroupMembersChoiceActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
         }
 
-        groupId = intent.getStringExtra("GROUP_ID") ?: "Неизвестный ID"
-
         // Навигационные кнопки
         val btnGoBack: ImageButton = findViewById(R.id.btnGoBack)
         btnGoBack.setOnClickListener {
@@ -90,13 +94,12 @@ class GroupMembersChoiceActivity : AppCompatActivity() {
         searchEditText = findViewById(R.id.membersSearch)
         mainTitle = findViewById(R.id.mainTitle)
 
-
         // Установка слушателя для изменения текста
         searchEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                if (groupId == "123" && s != null) { // Проверяем groupId здесь
+                if (groupId.isNotEmpty() && s != null) {
                     searchUserByName(s.toString())
                 }
             }
@@ -114,12 +117,12 @@ class GroupMembersChoiceActivity : AppCompatActivity() {
                     for (userSnapshot in dataSnapshot.children) {
                         val userName = userSnapshot.child("name").getValue(String::class.java)
                         if (!userName.isNullOrEmpty()) {
-                            mainTitle.text = userName // Измените текст заголовка на имя пользователя
+                            mainTitle.text = userName
                             return
                         }
                     }
                 } else {
-                    mainTitle.text = "Выбор участников" // Вернуть заголовок, если никого не нашли
+                    mainTitle.text = "Выбор участников"
                 }
             }
 
