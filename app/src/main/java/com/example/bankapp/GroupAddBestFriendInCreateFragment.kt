@@ -115,10 +115,10 @@ class GroupAddBestFriendInCreateFragment : Fragment() {
         Log.d("GroupAdd", "Adding user $targetUserId to group $groupId")
 
         // 1. Добавляем пользователя в группу: Groups -> groupId -> Users -> userId: userId
-        val groupUserRef = database.child("Groups").child(groupId!!).child("Users").child(targetUserId)
+        val groupUserRef = database.child("Groups").child(groupId!!).child("Users").child(targetUserId).child(targetUserId)
 
         // 2. Добавляем группу к пользователю: Users -> userId -> Groups -> groupId: groupId
-        val userGroupRef = database.child("Users").child(targetUserId).child("Groups").child(groupId!!)
+        val userGroupRef = database.child("Users").child(targetUserId).child("Groups").child(groupId!!).child(groupId!!)
 
         // Создаем транзакцию для атомарного обновления
         groupUserRef.setValue(targetUserId)

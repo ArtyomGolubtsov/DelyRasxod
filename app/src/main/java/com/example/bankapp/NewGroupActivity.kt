@@ -414,7 +414,7 @@ class NewGroupActivity : AppCompatActivity() {
         )
 
         val groupsRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId")
-        val userGroupsRef = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId")
+        val userGroupsRef = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId/$groupId")
 
         groupsRef.setValue(group)
             .addOnSuccessListener {

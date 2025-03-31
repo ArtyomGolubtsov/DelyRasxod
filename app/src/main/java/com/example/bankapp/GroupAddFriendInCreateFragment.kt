@@ -93,8 +93,8 @@ class GroupAddFriendInCreateFragment : Fragment() {
 
         Log.d("GroupAdd", "Adding user ${targetUser.userId} to group $groupId")
 
-        val groupUserRef = database.child("Groups").child(groupId!!).child("Users").child(targetUser.userId)
-        val userGroupRef = database.child("Users").child(targetUser.userId).child("Groups").child(groupId!!)
+        val groupUserRef = database.child("Groups").child(groupId!!).child("Users").child(targetUser.userId).child(targetUser.userId)
+        val userGroupRef = database.child("Users").child(targetUser.userId).child("Groups").child(groupId!!).child(groupId!!)
 
         groupUserRef.setValue(true)
             .addOnSuccessListener {
@@ -221,7 +221,7 @@ class GroupAddFriendInCreateFragment : Fragment() {
             val addButton: ImageButton = itemView.findViewById(R.id.addFriendBtn)
 
             fun bind(user: User) {
-                userName.text = if (user.isBestFriend) "★ ${user.name}" else user.name
+                userName.text = if (user.isBestFriend) " ${user.name}" else user.name
                 userEmail.text = user.email
                 friendTypeCheckbox.isChecked = user.isBestFriend
                 friendTypeCheckbox.isEnabled = false
