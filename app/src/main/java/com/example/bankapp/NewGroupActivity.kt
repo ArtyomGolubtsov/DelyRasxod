@@ -422,11 +422,11 @@ class NewGroupActivity : AppCompatActivity() {
                     .addOnSuccessListener {
                         Toast.makeText(this, "Группа успешно создана", Toast.LENGTH_SHORT).show()
                         // Запускаем GroupMembersChoiceActivity с передачей groupId
-                        val intent = Intent(this, GroupMembersChoiceActivity::class.java).apply {
-                            putExtra("GROUP_ID", groupId)
-                        }
-                        startActivity(intent)
-                        finish()
+                            val intent = Intent(this, GroupMembersChoiceActivity::class.java)
+                            intent.putExtra("GROUP_ID", groupId)
+                            startActivity(intent)
+                            overridePendingTransition(0, 0)
+
                     }
                     .addOnFailureListener {
                         Toast.makeText(this, "Ошибка при сохранении ссылки на группу", Toast.LENGTH_SHORT).show()

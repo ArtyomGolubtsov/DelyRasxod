@@ -5,11 +5,13 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
@@ -61,6 +63,15 @@ class GroupMembersChoiceActivity : AppCompatActivity() {
         // Инициализация базы данных
         database = FirebaseDatabase.getInstance().getReference("Users")
 
+        val CntBtn: Button = findViewById(R.id.confirmBtn)
+        CntBtn.text = "Продолжить"
+        CntBtn.setOnClickListener {
+            val intent = Intent(this, GroupInfoActivity::class.java)
+            intent.putExtra("GROUP_ID", groupId)
+            Toast.makeText(this, groupId, Toast.LENGTH_SHORT).show()
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
         // Настройка нижнего меню
         val icogroupsBtn: ImageView = findViewById(R.id.groupsBtnIcon)
         icogroupsBtn.setImageResource(R.drawable.ic_groups_outline_active)

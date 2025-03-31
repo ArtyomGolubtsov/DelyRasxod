@@ -25,7 +25,8 @@ class GroupAddFriendInCreateFragment : Fragment() {
         val email: String = "",
         val UserPhoto: String = "",
         val pin: String? = null,
-        var isBestFriend: Boolean = false
+        var isBestFriend: Boolean = false,
+        var isAddedToGroup: Boolean = false // Новое поле для отслеживания добавления в группу
     )
 
     private lateinit var recyclerView: RecyclerView
@@ -75,28 +76,32 @@ class GroupAddFriendInCreateFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = FriendsAdapter(friendsList) { targetUser ->
-            addUserToGroup(targetUser.userId)
+            if (!targetUser.isAddedToGroup) {
+                addUserToGroup(targetUser)
+            }
         }
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
     }
 
-    private fun addUserToGroup(targetUserId: String) {
+    private fun addUserToGroup(targetUser: User) {
         if (groupId.isNullOrEmpty()) {
             Toast.makeText(context, "Ошибка: ID группы не указан", Toast.LENGTH_SHORT).show()
             Log.e("GroupAdd", "GroupId is null or empty")
             return
         }
 
-        Log.d("GroupAdd", "Adding user $targetUserId to group $groupId")
+        Log.d("GroupAdd", "Adding user ${targetUser.userId} to group $groupId")
 
-        val groupUserRef = database.child("Groups").child(groupId!!).child("Users").child(targetUserId)
-        val userGroupRef = database.child("Users").child(targetUserId).child("Groups").child(groupId!!)
+        val groupUserRef = database.child("Groups").child(groupId!!).child("Users").child(targetUser.userId)
+        val userGroupRef = database.child("Users").child(targetUser.userId).child("Groups").child(groupId!!)
 
         groupUserRef.setValue(true)
             .addOnSuccessListener {
                 userGroupRef.setValue(true)
                     .addOnSuccessListener {
+                        // Обновляем статус добавления в группу
+                        updateUserAddedStatus(targetUser.userId, true)
                         Toast.makeText(context, "Пользователь добавлен в группу", Toast.LENGTH_SHORT).show()
                         Log.d("GroupAdd", "Successfully added user to group")
                     }
@@ -112,8 +117,15 @@ class GroupAddFriendInCreateFragment : Fragment() {
             }
     }
 
+    private fun updateUserAddedStatus(userId: String, isAdded: Boolean) {
+        val position = friendsList.indexOfFirst { it.userId == userId }
+        if (position != -1) {
+            friendsList[position].isAddedToGroup = isAdded
+            adapter.notifyItemChanged(position)
+        }
+    }
+
     private fun loadBestFriendsFirst() {
-        // Сначала загружаем ID лучших друзей
         database.child("Users").child(currentUserId!!).child("Friends").child("BestFriend")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -122,20 +134,17 @@ class GroupAddFriendInCreateFragment : Fragment() {
                             bestFriendIds.add(friendId)
                         }
                     }
-                    // После загрузки ID лучших друзей загружаем всех друзей из Frinding
                     loadAllRegularFriends()
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     Log.e("FriendLoad", "Best friends load error", error.toException())
-                    // Если не удалось загрузить лучших друзей, все равно загружаем обычных
                     loadAllRegularFriends()
                 }
             })
     }
 
     private fun loadAllRegularFriends() {
-        // Загружаем всех друзей из Frinding
         database.child("Users").child(currentUserId!!).child("Friends").child("Frinding")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -164,14 +173,37 @@ class GroupAddFriendInCreateFragment : Fragment() {
 
                     user?.let {
                         if (it.userId != currentUserId) {
-                            friendsList.add(it)
-                            adapter.notifyDataSetChanged()
+                            // Проверяем, добавлен ли уже пользователь в группу
+                            checkIfUserInGroup(it)
                         }
                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     Log.e("FriendLoad", "User details load error", error.toException())
+                }
+            })
+    }
+
+    private fun checkIfUserInGroup(user: User) {
+        if (groupId.isNullOrEmpty()) {
+            friendsList.add(user)
+            adapter.notifyDataSetChanged()
+            return
+        }
+
+        database.child("Groups").child(groupId!!).child("Users").child(user.userId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val isInGroup = snapshot.exists()
+                    val updatedUser = user.copy(isAddedToGroup = isInGroup)
+                    friendsList.add(updatedUser)
+                    adapter.notifyDataSetChanged()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    friendsList.add(user)
+                    adapter.notifyDataSetChanged()
                 }
             })
     }
@@ -189,7 +221,7 @@ class GroupAddFriendInCreateFragment : Fragment() {
             val addButton: ImageButton = itemView.findViewById(R.id.addFriendBtn)
 
             fun bind(user: User) {
-                userName.text = if (user.isBestFriend) "${user.name}" else user.name
+                userName.text = if (user.isBestFriend) "★ ${user.name}" else user.name
                 userEmail.text = user.email
                 friendTypeCheckbox.isChecked = user.isBestFriend
                 friendTypeCheckbox.isEnabled = false
@@ -199,7 +231,16 @@ class GroupAddFriendInCreateFragment : Fragment() {
                     .placeholder(R.drawable.ic_person_outline)
                     .into(userPhoto)
 
-                addButton.setImageResource(R.drawable.ic_add)
+                // Изменяем вид кнопки в зависимости от статуса добавления
+                if (user.isAddedToGroup) {
+                    addButton.setBackgroundResource(R.drawable.activity_item_bg)
+                    addButton.isEnabled = false
+                } else {
+                    addButton.setImageResource(R.drawable.ic_add)
+                    addButton.setBackgroundResource(R.drawable.btn_blue_bg)
+                    addButton.isEnabled = true
+                }
+
                 addButton.setOnClickListener { onAddClick(user) }
             }
         }
