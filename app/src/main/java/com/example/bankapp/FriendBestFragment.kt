@@ -1,5 +1,6 @@
 package com.example.bankapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -146,9 +147,8 @@ class FriendBestFragment : Fragment() {
                 userName.text = user.name
                 userEmail.text = user.email
 
-                // CheckBox отмечен, так как это лучший друг
                 bestFriendCheckbox.isChecked = true
-                bestFriendCheckbox.isEnabled = false // Делаем невозможным снятие отметки
+                bestFriendCheckbox.isEnabled = false
 
                 removeButton.visibility = View.GONE
                 removeButton.isEnabled = false
@@ -157,12 +157,31 @@ class FriendBestFragment : Fragment() {
                     .load(user.UserPhoto)
                     .placeholder(R.drawable.ic_person_outline)
                     .into(userPhoto)
-                /*
-                // Настраиваем кнопку для удаления из лучших друзей
-                removeButton.setImageResource(R.drawable.ic_remove) // Установите свою иконку удаления
-                removeButton.setOnClickListener {
-                    onRemoveClick(user)
-                }*/
+
+                // Добавляем обработчик нажатия на весь элемент
+                itemView.setOnClickListener {
+                    // Находим ID пользователя по его email
+                    database.child("Users").orderByChild("email").equalTo(user.email)
+                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                if (snapshot.exists()) {
+                                    for (userSnapshot in snapshot.children) {
+                                        val userId = userSnapshot.key
+                                        userId?.let {
+                                            // Запускаем ContactInfoActivity с ID пользователя
+                                            val intent = Intent(context, ContactInfoActivity::class.java)
+                                            intent.putExtra("USER_ID", userId)
+                                            startActivity(intent)
+                                        }
+                                    }
+                                }
+                            }
+
+                            override fun onCancelled(error: DatabaseError) {
+                                Log.e("FriendBest", "Error finding user ID: ${error.message}")
+                            }
+                        })
+                }
             }
         }
 

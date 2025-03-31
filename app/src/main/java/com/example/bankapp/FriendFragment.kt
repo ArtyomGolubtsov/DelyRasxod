@@ -1,5 +1,6 @@
 package com.example.bankapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -60,9 +61,13 @@ class FriendFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = ContactsAdapter(userList,
-            onFriendClick = { selectedUser ->
-                findUserIdByEmail(selectedUser.email)
+        adapter = ContactsAdapter(
+            userList,
+            onItemClick = { user ->
+                // Открываем ContactInfoActivity с передачей ID пользователя
+                val intent = Intent(requireContext(), ContactInfoActivity::class.java)
+                intent.putExtra("USER_ID", user.userId)
+                startActivity(intent)
             },
             onBestFriendCheck = { user, isChecked ->
                 if (isChecked) {
@@ -83,9 +88,7 @@ class FriendFragment : Fragment() {
                     userList.clear()
                     for (friendSnapshot in snapshot.children) {
                         val friendId = friendSnapshot.key
-                        if (friendId != null) {
-                            loadFriendDetails(friendId)
-                        }
+                        friendId?.let { loadFriendDetails(it) }
                     }
                 }
 
@@ -132,9 +135,7 @@ class FriendFragment : Fragment() {
 
     private fun setupSearch() {
         searchEditText.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                filter(s.toString())
-            }
+            override fun afterTextChanged(s: Editable?) { filter(s.toString()) }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
@@ -149,42 +150,6 @@ class FriendFragment : Fragment() {
             }
         }
         adapter.updateList(filteredList)
-    }
-
-    private fun findUserIdByEmail(email: String) {
-        database.orderByChild("email").equalTo(email)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    if (snapshot.exists()) {
-                        for (userSnapshot in snapshot.children) {
-                            val targetUserId = userSnapshot.key
-                            if (targetUserId != null) {
-                                sendFriendRequest(targetUserId)
-                            }
-                        }
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e("UserSearch", "Error searching by email: ${error.message}")
-                }
-            })
-    }
-
-    private fun sendFriendRequest(targetUserId: String) {
-        if (currentUserId == targetUserId) {
-            Toast.makeText(context, "You cannot add yourself", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val requestsRef = database.child(targetUserId).child("Friends").child("Requests").child(currentUserId!!)
-        requestsRef.setValue(currentUserId).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Toast.makeText(context, "Friend request sent", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(context, "Failed to send request", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     private fun addBestFriend(email: String) {
@@ -253,7 +218,7 @@ class FriendFragment : Fragment() {
 
     inner class ContactsAdapter(
         private var users: List<User>,
-        private val onFriendClick: (User) -> Unit,
+        private val onItemClick: (User) -> Unit,
         private val onBestFriendCheck: (User, Boolean) -> Unit
     ) : RecyclerView.Adapter<ContactsAdapter.ViewHolder>() {
 
@@ -268,7 +233,6 @@ class FriendFragment : Fragment() {
                 userName.text = user.name
                 userPhone.text = user.email
                 addFriendButton.visibility = View.GONE
-                addFriendButton.isEnabled = false
                 bestFriendCheckbox.isChecked = user.isBestFriend
 
                 Glide.with(itemView.context)
@@ -276,12 +240,13 @@ class FriendFragment : Fragment() {
                     .placeholder(R.drawable.ic_person_outline)
                     .into(userPhoto)
 
-                bestFriendCheckbox.setOnCheckedChangeListener(null) // Сначала удаляем старый listener
                 bestFriendCheckbox.setOnCheckedChangeListener { _, isChecked ->
                     onBestFriendCheck(user, isChecked)
                 }
 
-                itemView.setOnClickListener { onFriendClick(user) }
+                itemView.setOnClickListener {
+                    onItemClick(user)
+                }
             }
         }
 
