@@ -19,6 +19,9 @@
         android:theme="@style/Base.Theme.BankApp"
         tools:targetApi="31">
         <activity
+            android:name=".RecommendProductsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ContactInfoActivity"
             android:exported="false" />
         <activity
