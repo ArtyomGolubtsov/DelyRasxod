@@ -85,11 +85,12 @@ class FriendFragment : Fragment() {
         database.child(currentUserId!!).child("Friends").child("Frinding")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    userList.clear()
+                    userList.clear()  // Очистка списка
                     for (friendSnapshot in snapshot.children) {
                         val friendId = friendSnapshot.key
                         friendId?.let { loadFriendDetails(it) }
                     }
+                    adapter.notifyDataSetChanged()  // Убедитесь, что обновляете адаптер здесь
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -97,6 +98,7 @@ class FriendFragment : Fragment() {
                 }
             })
     }
+
 
     private fun loadFriendDetails(friendId: String) {
         database.child(friendId).addListenerForSingleValueEvent(object : ValueEventListener {

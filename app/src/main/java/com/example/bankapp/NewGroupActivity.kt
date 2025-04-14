@@ -383,21 +383,31 @@ class NewGroupActivity : AppCompatActivity() {
 
     private fun saveChangesToDatabase(title: String, description: String, imageUrl: String, categories: List<String>, groupId: String) {
         val groupsRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId")
+        val groupMembersRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId/Users/$userId")
+
         val updates = mapOf(
             "title" to title,
             "description" to description,
             "imageUri" to imageUrl,
-            "categories" to categories
+            "categories" to categories,
+            "admin" to userId
         )
 
         groupsRef.updateChildren(updates)
             .addOnSuccessListener {
-                Toast.makeText(this, "Изменения сохранены", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, GroupInfoActivity::class.java).apply {
-                    putExtra("GROUP_ID", groupId)
-                }
-                startActivity(intent)
-                finish()
+                // Добавляем администратора как участника группы (если его еще нет)
+                groupMembersRef.setValue(true)
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Изменения сохранены", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this, GroupInfoActivity::class.java).apply {
+                            putExtra("GROUP_ID", groupId)
+                        }
+                        startActivity(intent)
+                        finish()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Ошибка при добавлении администратора в группу", Toast.LENGTH_SHORT).show()
+                    }
             }.addOnFailureListener {
                 Toast.makeText(this, "Ошибка при сохранении изменений", Toast.LENGTH_SHORT).show()
             }
@@ -414,19 +424,27 @@ class NewGroupActivity : AppCompatActivity() {
         )
 
         val groupsRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId")
-        val userGroupsRef = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId/$groupId")
+        val userGroupsRef = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId")
+        val groupMembersRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId/Users/$userId")
 
+        // Сохраняем основную информацию о группе
         groupsRef.setValue(group)
             .addOnSuccessListener {
+                // Сохраняем ссылку на группу для пользователя
                 userGroupsRef.setValue(true)
                     .addOnSuccessListener {
-                        Toast.makeText(this, "Группа успешно создана", Toast.LENGTH_SHORT).show()
-                        // Запускаем GroupMembersChoiceActivity с передачей groupId
-                            val intent = Intent(this, GroupMembersChoiceActivity::class.java)
-                            intent.putExtra("GROUP_ID", groupId)
-                            startActivity(intent)
-                            overridePendingTransition(0, 0)
-
+                        // Добавляем администратора как участника группы
+                        groupMembersRef.setValue(true)
+                            .addOnSuccessListener {
+                                Toast.makeText(this, "Группа успешно создана", Toast.LENGTH_SHORT).show()
+                                val intent = Intent(this, GroupMembersChoiceActivity::class.java)
+                                intent.putExtra("GROUP_ID", groupId)
+                                startActivity(intent)
+                                overridePendingTransition(0, 0)
+                            }
+                            .addOnFailureListener {
+                                Toast.makeText(this, "Ошибка при добавлении администратора в группу", Toast.LENGTH_SHORT).show()
+                            }
                     }
                     .addOnFailureListener {
                         Toast.makeText(this, "Ошибка при сохранении ссылки на группу", Toast.LENGTH_SHORT).show()
