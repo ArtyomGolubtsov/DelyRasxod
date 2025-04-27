@@ -1,6 +1,7 @@
 package com.example.bankapp
 
 import android.app.Dialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,7 +14,6 @@ import com.google.firebase.database.FirebaseDatabase
 
 class ExitGroupDialogFragment : DialogFragment() {
 
-    private var groupId: String? = null // ID группы
     private var listener: ExitGroupListener? = null
 
     interface ExitGroupListener {
@@ -21,9 +21,16 @@ class ExitGroupDialogFragment : DialogFragment() {
         fun onExitCancelled()
     }
 
-    // Установите ID группы
-    fun setGroupId(id: String) {
-        groupId = id
+    companion object {
+        private const val ARG_GROUP_ID = "group_id"
+
+        fun newInstance(groupId: String): ExitGroupDialogFragment {
+            val fragment = ExitGroupDialogFragment()
+            val args = Bundle()
+            args.putString(ARG_GROUP_ID, groupId)
+            fragment.arguments = args
+            return fragment
+        }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -43,17 +50,27 @@ class ExitGroupDialogFragment : DialogFragment() {
 
         btnConfirmExit.setOnClickListener {
             val userId = FirebaseAuth.getInstance().currentUser?.uid
+            val groupId = arguments?.getString(ARG_GROUP_ID)
+
             if (userId != null && groupId != null) {
                 val databaseReference = FirebaseDatabase.getInstance()
-                    .getReference("Users").child(userId).child("Groups").child(groupId!!)
+                    .getReference("Users")
+                    .child(userId)
+                    .child("Groups")
+                    .child(groupId)
 
-                // Удалить группу
-                databaseReference.removeValue().addOnSuccessListener {
-                    listener?.onExitConfirmed() // Уведомление об успешном выходе из группы
-                    dismiss()
-                }.addOnFailureListener { error ->
-                    Log.e("DeleteGroup", "Ошибка при удалении группы: ${error.message}")
-                }
+                databaseReference.removeValue()
+                    .addOnSuccessListener {
+                        listener?.onExitConfirmed()
+                        // После успешного выхода, переходим на GroupsActivity
+                        val intent = Intent(requireContext(), GroupsActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                        startActivity(intent)
+                        requireActivity().finish() // Закрываем текущее активити
+                    }
+                    .addOnFailureListener { error ->
+                        Log.e("DeleteGroup", "Ошибка при удалении группы: ${error.message}")
+                    }
             }
         }
 

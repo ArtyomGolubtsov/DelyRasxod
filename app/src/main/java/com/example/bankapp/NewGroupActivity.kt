@@ -28,26 +28,22 @@ import com.bumptech.glide.Glide
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.flexbox.JustifyContent
-import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import java.security.MessageDigest
 import java.util.UUID
 
-// Данные о групповой активности
 data class GroupActivityItem(val name: String, val category: String, val imageResId: Int)
 
-// Данные о группе
 data class Group(
     val title: String = "",
     val description: String = "",
     val imageUri: String = "",
     val categories: List<String> = emptyList(),
-    val admin: String = "" // Добавлено поле для хранения ID администратора
+    val admin: String = ""
 )
 
-// Адаптер для группы активностей
 class GroupActivityAdapter(
     private val activityList: List<GroupActivityItem>,
     private val onCategorySelected: (List<String>) -> Unit
@@ -63,6 +59,13 @@ class GroupActivityAdapter(
 
     private val selectedButtons = mutableSetOf<AppCompatButton>()
     var selectedCategories = mutableListOf<String>()
+
+    fun updateSelectedCategories(categories: List<String>) {
+        selectedCategories.clear()
+        selectedCategories.addAll(categories)
+        selectedButtons.clear()
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActivityViewHolder {
         val layoutId = when (viewType) {
@@ -90,7 +93,8 @@ class GroupActivityAdapter(
 
     override fun onBindViewHolder(holder: ActivityViewHolder, position: Int) {
         resetButtonBackgrounds(holder)
-        activateCategoryButtons(holder)
+        updateButtonStates(holder)
+        setupCategoryButtons(holder)
     }
 
     private fun resetButtonBackgrounds(holder: ActivityViewHolder) {
@@ -102,63 +106,79 @@ class GroupActivityAdapter(
         holder.ctgrTravelBtn?.backgroundTintList = ColorStateList.valueOf(defaultColor)
     }
 
-    private fun onCategoryButtonClick(context: Context, button: AppCompatButton?, selectedColor: Int, category: String) {
-        button?.let { v ->
-            if (!selectedButtons.contains(v) && selectedCategories.size < 2) {
-                val clickAnimation = AnimationUtils.loadAnimation(context, R.anim.keyboardfirst)
-                v.startAnimation(clickAnimation)
-                v.backgroundTintList = ColorStateList.valueOf(selectedColor)
-                selectedButtons.add(v)
-                selectedCategories.add(category)
-                onCategorySelected(selectedCategories)
+    private fun updateButtonStates(holder: ActivityViewHolder) {
+        holder.ctgrEventBtn?.let { btn ->
+            btn.backgroundTintList = if (selectedCategories.contains("Событие")) {
+                ColorStateList.valueOf(ContextCompat.getColor(btn.context, R.color.ctgr_event))
             } else {
-                if (selectedButtons.contains(v)) {
-                    v.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.back_btn))
-                    selectedButtons.remove(v)
-                    selectedCategories.remove(category)
-                } else {
-                    val shakeAnimation = AnimationUtils.loadAnimation(context, R.anim.shake)
-                    v.startAnimation(shakeAnimation)
-                }
+                ColorStateList.valueOf(ContextCompat.getColor(btn.context, R.color.back_btn))
+            }
+        }
+
+        holder.ctgrFamilyBtn?.let { btn ->
+            btn.backgroundTintList = if (selectedCategories.contains("Семья")) {
+                ColorStateList.valueOf(ContextCompat.getColor(btn.context, R.color.ctgr_family))
+            } else {
+                ColorStateList.valueOf(ContextCompat.getColor(btn.context, R.color.back_btn))
+            }
+        }
+
+        holder.ctgrOtherBtn?.let { btn ->
+            btn.backgroundTintList = if (selectedCategories.contains("Другое")) {
+                ColorStateList.valueOf(ContextCompat.getColor(btn.context, R.color.ctgr_other))
+            } else {
+                ColorStateList.valueOf(ContextCompat.getColor(btn.context, R.color.back_btn))
+            }
+        }
+
+        holder.ctgrPartyBtn?.let { btn ->
+            btn.backgroundTintList = if (selectedCategories.contains("Вечеринка")) {
+                ColorStateList.valueOf(ContextCompat.getColor(btn.context, R.color.ctgr_party))
+            } else {
+                ColorStateList.valueOf(ContextCompat.getColor(btn.context, R.color.back_btn))
+            }
+        }
+
+        holder.ctgrTravelBtn?.let { btn ->
+            btn.backgroundTintList = if (selectedCategories.contains("Путешествия")) {
+                ColorStateList.valueOf(ContextCompat.getColor(btn.context, R.color.dely_blue))
+            } else {
+                ColorStateList.valueOf(ContextCompat.getColor(btn.context, R.color.back_btn))
             }
         }
     }
 
-    private fun activateCategoryButtons(holder: ActivityViewHolder) {
-        holder.ctgrEventBtn?.setOnClickListener {
-            val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_event)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrEventBtn, color, "Событие")
-        }
-        holder.ctgrFamilyBtn?.setOnClickListener {
-            val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_family)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrFamilyBtn, color, "Семья")
-        }
-        holder.ctgrOtherBtn?.setOnClickListener {
-            val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_other)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrOtherBtn, color, "Другое")
-        }
-        holder.ctgrPartyBtn?.setOnClickListener {
-            val color = ContextCompat.getColor(holder.itemView.context, R.color.ctgr_party)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrPartyBtn, color, "Вечеринка")
-        }
-        holder.ctgrTravelBtn?.setOnClickListener {
-            val color = ContextCompat.getColor(holder.itemView.context, R.color.dely_blue)
-            onCategoryButtonClick(holder.itemView.context, holder.ctgrTravelBtn, color, "Путешествия")
-        }
+    private fun setupCategoryButtons(holder: ActivityViewHolder) {
+        holder.ctgrEventBtn?.setOnClickListener { toggleCategory(holder.ctgrEventBtn, "Событие", R.color.ctgr_event) }
+        holder.ctgrFamilyBtn?.setOnClickListener { toggleCategory(holder.ctgrFamilyBtn, "Семья", R.color.ctgr_family) }
+        holder.ctgrOtherBtn?.setOnClickListener { toggleCategory(holder.ctgrOtherBtn, "Другое", R.color.ctgr_other) }
+        holder.ctgrPartyBtn?.setOnClickListener { toggleCategory(holder.ctgrPartyBtn, "Вечеринка", R.color.ctgr_party) }
+        holder.ctgrTravelBtn?.setOnClickListener { toggleCategory(holder.ctgrTravelBtn, "Путешествия", R.color.dely_blue) }
+    }
 
-        selectedCategories.forEach { category ->
-            when (category) {
-                "Событие" -> holder.ctgrEventBtn?.backgroundTintList =
-                    ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.context, R.color.ctgr_event))
-                "Семья" -> holder.ctgrFamilyBtn?.backgroundTintList =
-                    ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.context, R.color.ctgr_family))
-                "Другое" -> holder.ctgrOtherBtn?.backgroundTintList =
-                    ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.context, R.color.ctgr_other))
-                "Вечеринка" -> holder.ctgrPartyBtn?.backgroundTintList =
-                    ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.context, R.color.ctgr_party))
-                "Путешествия" -> holder.ctgrTravelBtn?.backgroundTintList =
-                    ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.context, R.color.dely_blue))
+    private fun toggleCategory(button: AppCompatButton?, category: String, colorRes: Int) {
+        button?.let { btn ->
+            val context = btn.context
+            val wasSelected = selectedCategories.contains(category)
+
+            if (wasSelected) {
+                selectedCategories.remove(category)
+                selectedButtons.remove(btn)
+                btn.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.back_btn))
+            } else {
+                if (selectedCategories.size < 2) {
+                    val clickAnimation = AnimationUtils.loadAnimation(context, R.anim.keyboardfirst)
+                    btn.startAnimation(clickAnimation)
+                    selectedCategories.add(category)
+                    selectedButtons.add(btn)
+                    btn.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, colorRes))
+                } else {
+                    val shakeAnimation = AnimationUtils.loadAnimation(context, R.anim.shake)
+                    btn.startAnimation(shakeAnimation)
+                }
             }
+
+            onCategorySelected(selectedCategories)
         }
     }
 
@@ -177,7 +197,7 @@ class NewGroupActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var userId: String
-    private var selectedCategories: List<String> = emptyList()
+    private var selectedCategories: MutableList<String> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -276,7 +296,8 @@ class NewGroupActivity : AppCompatActivity() {
         )
 
         val adapter = GroupActivityAdapter(activityList) { categories ->
-            selectedCategories = categories
+            selectedCategories.clear()
+            selectedCategories.addAll(categories)
         }
         recyclerView.adapter = adapter
     }
@@ -288,10 +309,13 @@ class NewGroupActivity : AppCompatActivity() {
             val description = dataSnapshot.child("description").getValue(String::class.java)
             val imageUri = dataSnapshot.child("imageUri").getValue(String::class.java)
 
-            if (title != null) {
-                groupTitle.setText(title)
+            groupTitle.setText(title ?: "")
+            groupDescription.setText(description ?: "")
+
+            if (imageUri != null) {
+                Glide.with(this).load(imageUri).into(groupImage)
             } else {
-                groupTitle.setText("")
+                groupImage.setImageResource(R.drawable.placeholder)
             }
 
             val selectedCategoriesList = mutableListOf<String>()
@@ -301,27 +325,12 @@ class NewGroupActivity : AppCompatActivity() {
                 }
             }
 
-            if (description != null) {
-                groupDescription.setText(description)
-            } else {
-                groupDescription.setText("")
-            }
+            selectedCategories.clear()
+            selectedCategories.addAll(selectedCategoriesList)
 
-            if (imageUri != null) {
-                Glide.with(this).load(imageUri).into(groupImage)
-            } else {
-                groupImage.setImageResource(R.drawable.placeholder)
-            }
-
-            selectedCategories = selectedCategoriesList
-            (recyclerView.adapter as? GroupActivityAdapter)?.apply {
-                selectedCategories = selectedCategories
-                notifyDataSetChanged()
-            }
+            (recyclerView.adapter as? GroupActivityAdapter)?.updateSelectedCategories(selectedCategoriesList)
         }.addOnFailureListener {
-            groupTitle.setText("Ошибка загрузки данных группы")
-            groupDescription.setText("")
-            groupImage.setImageResource(R.drawable.placeholder)
+            Toast.makeText(this, "Ошибка загрузки данных группы", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -338,121 +347,104 @@ class NewGroupActivity : AppCompatActivity() {
     private fun onContinueButtonClicked() {
         val title = groupTitle.text.toString().trim()
         val description = groupDescription.text.toString().trim()
-        val isTitleValid = title.isNotEmpty()
-        val isDescriptionValid = description.isNotEmpty()
-        val isImageValid = imageUri != null
-        val isCategorySelected = selectedCategories.isNotEmpty()
-
         val groupId = intent.getStringExtra("GROUP_ID")
 
-        if (!isTitleValid) {
-            Toast.makeText(this, "Введите заголовок группы", Toast.LENGTH_SHORT).show()
-        } else if (!isDescriptionValid) {
-            Toast.makeText(this, "Введите описание группы", Toast.LENGTH_SHORT).show()
-        } else if (!isImageValid && groupId.isNullOrEmpty()) {
-            Toast.makeText(this, "Выберите фотографию группы", Toast.LENGTH_SHORT).show()
-        } else if (!isCategorySelected) {
-            Toast.makeText(this, "Выберите хотя бы одну категорию", Toast.LENGTH_SHORT).show()
-        } else {
-            val imageHash = hashString(imageUri.toString())
-            val storageRef = FirebaseStorage.getInstance().reference
-            val imageRef = storageRef.child("group_images/${imageHash}.jpg")
-            val continueBtn: AppCompatButton = findViewById(R.id.continueBtn)
-
-            if (continueBtn.text.toString().trim() == "Сохранить") {
-                imageRef.putFile(imageUri!!)
-                    .addOnSuccessListener {
-                        imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                            saveChangesToDatabase(title, description, downloadUrl.toString(), selectedCategories, groupId!!)
-                        }
-                    }.addOnFailureListener {
-                        Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
-                    }
-            } else {
-                imageRef.putFile(imageUri!!)
-                    .addOnSuccessListener {
-                        imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                            saveGroupToDatabase(title, description, downloadUrl.toString())
-                        }
-                    }.addOnFailureListener {
-                        Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
-                    }
+        when {
+            title.isEmpty() -> Toast.makeText(this, "Введите заголовок группы", Toast.LENGTH_SHORT).show()
+            description.isEmpty() -> Toast.makeText(this, "Введите описание группы", Toast.LENGTH_SHORT).show()
+            imageUri == null && groupId.isNullOrEmpty() -> Toast.makeText(this, "Выберите фотографию группы", Toast.LENGTH_SHORT).show()
+            selectedCategories.isEmpty() -> Toast.makeText(this, "Выберите хотя бы одну категорию", Toast.LENGTH_SHORT).show()
+            else -> {
+                if (groupId != null) {
+                    updateExistingGroup(groupId, title, description)
+                } else {
+                    createNewGroup(title, description)
+                }
             }
         }
     }
 
-    private fun saveChangesToDatabase(title: String, description: String, imageUrl: String, categories: List<String>, groupId: String) {
-        val groupsRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId")
-        val groupMembersRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId/Users/$userId")
-
-        val updates = mapOf(
+    private fun updateExistingGroup(groupId: String, title: String, description: String) {
+        val updates = hashMapOf<String, Any>(
             "title" to title,
             "description" to description,
-            "imageUri" to imageUrl,
-            "categories" to categories,
-            "admin" to userId
+            "categories" to selectedCategories
         )
 
-        groupsRef.updateChildren(updates)
-            .addOnSuccessListener {
-                // Добавляем администратора как участника группы (если его еще нет)
-                groupMembersRef.setValue(true)
-                    .addOnSuccessListener {
-                        Toast.makeText(this, "Изменения сохранены", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this, GroupInfoActivity::class.java).apply {
-                            putExtra("GROUP_ID", groupId)
-                        }
-                        startActivity(intent)
-                        finish()
-                    }
-                    .addOnFailureListener {
-                        Toast.makeText(this, "Ошибка при добавлении администратора в группу", Toast.LENGTH_SHORT).show()
-                    }
+        if (imageUri != null) {
+            val imageHash = hashString(imageUri.toString())
+            val storageRef = FirebaseStorage.getInstance().reference
+            val imageRef = storageRef.child("group_images/${imageHash}.jpg")
+
+            imageRef.putFile(imageUri!!).addOnSuccessListener {
+                imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
+                    updates["imageUri"] = downloadUrl.toString()
+                    saveGroupUpdates(groupId, updates)
+                }
             }.addOnFailureListener {
+                Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            saveGroupUpdates(groupId, updates)
+        }
+    }
+
+    private fun saveGroupUpdates(groupId: String, updates: HashMap<String, Any>) {
+        FirebaseDatabase.getInstance().getReference("Groups/$groupId")
+            .updateChildren(updates)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Изменения сохранены", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, GroupInfoActivity::class.java).apply {
+                    putExtra("GROUP_ID", groupId)
+                }
+                startActivity(intent)
+                finish()
+            }
+            .addOnFailureListener {
                 Toast.makeText(this, "Ошибка при сохранении изменений", Toast.LENGTH_SHORT).show()
             }
     }
 
-    private fun saveGroupToDatabase(title: String, description: String, imageUrl: String) {
-        val groupId = UUID.randomUUID().toString()
-        val group = Group(
-            title = title,
-            description = description,
-            imageUri = imageUrl,
-            categories = selectedCategories,
-            admin = userId
-        )
+    private fun createNewGroup(title: String, description: String) {
+        val imageHash = hashString(imageUri.toString())
+        val storageRef = FirebaseStorage.getInstance().reference
+        val imageRef = storageRef.child("group_images/${imageHash}.jpg")
 
-        val groupsRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId")
-        val userGroupsRef = FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId")
-        val groupMembersRef = FirebaseDatabase.getInstance().getReference("Groups/$groupId/Users/$userId")
+        imageRef.putFile(imageUri!!).addOnSuccessListener {
+            imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
+                val groupId = UUID.randomUUID().toString()
+                val group = Group(
+                    title = title,
+                    description = description,
+                    imageUri = downloadUrl.toString(),
+                    categories = selectedCategories,
+                    admin = userId
+                )
 
-        // Сохраняем основную информацию о группе
-        groupsRef.setValue(group)
-            .addOnSuccessListener {
-                // Сохраняем ссылку на группу для пользователя
-                userGroupsRef.setValue(true)
+                FirebaseDatabase.getInstance().getReference("Groups/$groupId")
+                    .setValue(group)
                     .addOnSuccessListener {
-                        // Добавляем администратора как участника группы
-                        groupMembersRef.setValue(true)
+                        FirebaseDatabase.getInstance().getReference("Users/$userId/Groups/$groupId")
+                            .setValue(true)
                             .addOnSuccessListener {
-                                Toast.makeText(this, "Группа успешно создана", Toast.LENGTH_SHORT).show()
-                                val intent = Intent(this, GroupMembersChoiceActivity::class.java)
-                                intent.putExtra("GROUP_ID", groupId)
-                                startActivity(intent)
-                                overridePendingTransition(0, 0)
-                            }
-                            .addOnFailureListener {
-                                Toast.makeText(this, "Ошибка при добавлении администратора в группу", Toast.LENGTH_SHORT).show()
+                                FirebaseDatabase.getInstance().getReference("Groups/$groupId/Users/$userId")
+                                    .setValue(true)
+                                    .addOnSuccessListener {
+                                        Toast.makeText(this, "Группа успешно создана", Toast.LENGTH_SHORT).show()
+                                        val intent = Intent(this, GroupMembersChoiceActivity::class.java)
+                                        intent.putExtra("GROUP_ID", groupId)
+                                        startActivity(intent)
+                                        overridePendingTransition(0, 0)
+                                    }
                             }
                     }
                     .addOnFailureListener {
-                        Toast.makeText(this, "Ошибка при сохранении ссылки на группу", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Ошибка при создании группы", Toast.LENGTH_SHORT).show()
                     }
             }
-            .addOnFailureListener {
-                Toast.makeText(this, "Ошибка при создании группы", Toast.LENGTH_SHORT).show()
-            }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun hashString(input: String): String {
