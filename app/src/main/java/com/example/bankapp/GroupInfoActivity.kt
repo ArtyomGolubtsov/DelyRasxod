@@ -224,27 +224,23 @@ class GroupInfoActivity : AppCompatActivity() {
     }
 
     private fun showExitGroupDialog() {
-        val exitGroupDialogFragment = ExitGroupDialogFragment()
+        val groupId = intent.getStringExtra("GROUP_ID")
 
-        exitGroupDialogFragment.setExitGroupListener(object : ExitGroupDialogFragment.ExitGroupListener {
-            override fun onExitConfirmed() {
-                // Здесь реализуйте логику выхода из группы
-                val userId = FirebaseAuth.getInstance().currentUser?.uid
-                if (userId != null) {
-                    database.child("Groups").child(intent.getStringExtra("GROUP_ID")!!).child("Members").child(userId).removeValue()
+        if (groupId != null) {
+            val exitGroupDialogFragment = ExitGroupDialogFragment.newInstance(groupId)
+
+            exitGroupDialogFragment.setExitGroupListener(object : ExitGroupDialogFragment.ExitGroupListener {
+                override fun onExitConfirmed() {
+                    // Ничего делать здесь не надо — переход в GroupsActivity уже будет в самом фрагменте
                 }
-                val intent = Intent(this@GroupInfoActivity, GroupsActivity::class.java)
-                intent.putExtra("GROUP_ID", intent.getStringExtra("GROUP_ID")) // Здесь передаем ID группы
-                startActivity(intent)
-                finish()
-            }
 
-            override fun onExitCancelled() {
-                // Логика для отмены выхода из группы, если необходимо
-            }
-        })
+                override fun onExitCancelled() {
+                    // Просто закроется диалог
+                }
+            })
 
-        exitGroupDialogFragment.show(supportFragmentManager, "ExitGroupDialog")
+            exitGroupDialogFragment.show(supportFragmentManager, "ExitGroupDialog")
+        }
     }
 
     private fun openActivity(targetActivity: Class<*>) {
