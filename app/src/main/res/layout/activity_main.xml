@@ -130,10 +130,10 @@
                         app:layout_constraintStart_toStartOf="parent"/>
 
                     <ImageView
-                        android:layout_width="90dp"
-                        android:layout_height="90dp"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
                         android:src="@drawable/ic_places_btn"
-                        android:scaleType="center"
+                        android:scaleType="fitCenter"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"/>
 
@@ -160,8 +160,8 @@
                         app:layout_constraintStart_toStartOf="parent"/>
 
                     <ImageView
-                        android:layout_width="90dp"
-                        android:layout_height="90dp"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
                         android:src="@drawable/ic_products_btn"
                         android:scaleType="centerCrop"
                         app:layout_constraintEnd_toEndOf="parent"
