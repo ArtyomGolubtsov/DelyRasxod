@@ -68,6 +68,7 @@
             android:layout_height="match_parent"/>
 
         <ImageButton
+            android:id="@+id/btnAddExpense"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:background="@drawable/activity_item_bg"
