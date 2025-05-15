@@ -2,6 +2,7 @@ package com.example.bankapp
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -26,6 +28,12 @@ import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import java.io.IOException
+import java.net.URLEncoder
 
 // Класс для группы
 open class ActivityItem(
@@ -37,7 +45,7 @@ open class ActivityItem(
     constructor(id: String, name: String, category: String) : this(id, name, category, "drawable/logo")
 }
 
-// Статический элемент для отображения, если нет групп
+// Статический элемент для отображения
 class StaticActivityItem(
     imageUrl: String = "drawable/logo"
 ) : ActivityItem("0", "У вас еще нет групп", "Создайте их!", imageUrl)
@@ -59,7 +67,6 @@ class SpaceItemDecoration(private val space: Int) : RecyclerView.ItemDecoration(
 }
 
 class ActivityAdapter(private val activityList: List<ActivityItem>) : RecyclerView.Adapter<ActivityAdapter.ActivityViewHolder>() {
-
     class ActivityViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val activityName: TextView = view.findViewById(R.id.activityName)
         val activityCategory: TextView = view.findViewById(R.id.activityCategory)
@@ -106,6 +113,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var activityList: MutableList<ActivityItem>
     private lateinit var adapter: ActivityAdapter
+    private lateinit var payButton: Button
+    private val client = OkHttpClient()
 
     companion object {
         private const val PICK_IMAGE_REQUEST = 1
@@ -127,16 +136,10 @@ class MainActivity : AppCompatActivity() {
             usersPhoto.startAnimation(clickAnimation)
         }
 
-        // Нижнее меню
-        val homeBtnIcon: ImageView = findViewById(R.id.homeBtnIcon)
-        homeBtnIcon.setImageResource(R.drawable.ic_home_outline_active)
-        val homeTxt: TextView = findViewById(R.id.homeBtnText)
-        homeTxt.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
+        // Lower menu
         val mainBtn: LinearLayout = findViewById(R.id.homeBtn)
-
         mainBtn.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, MainActivity::class.java))
             overridePendingTransition(0, 0)
             mainBtn.startAnimation(clickAnimation)
         }
@@ -148,20 +151,6 @@ class MainActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
         }
 
-        val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)
-        contactsBtn.setOnClickListener {
-            startActivity(Intent(this, ContactActivity::class.java))
-            contactsBtn.startAnimation(clickAnimation)
-            overridePendingTransition(0, 0)
-        }
-
-        val TextAllGroup: TextView = findViewById(R.id.allActivitiesLink)
-        TextAllGroup.setOnClickListener {
-            val intent = Intent(this, NewGroupActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-            mainBtn.startAnimation(clickAnimation)
-        }
 
         val searchContactsBtn: ImageButton = findViewById(R.id.searchBtn)
         searchContactsBtn.setOnClickListener {
@@ -202,14 +191,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadUserActivities(userId: String) {
-        // 1. Сначала получаем список ID групп пользователя
         database.child("Users").child(userId).child("Groups")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(userGroupsSnapshot: DataSnapshot) {
                     activityList.clear()
                     val groupIds = mutableListOf<String>()
 
-                    // Собираем все ID групп пользователя
                     for (groupSnapshot in userGroupsSnapshot.children) {
                         groupSnapshot.key?.let { groupIds.add(it) }
                     }
@@ -219,8 +206,6 @@ class MainActivity : AppCompatActivity() {
                         adapter.notifyDataSetChanged()
                         return
                     }
-
-                    // 2. Затем загружаем полные данные каждой группы из /Groups
                     loadGroupsData(groupIds)
                 }
 
@@ -346,4 +331,5 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Ошибка сохранения ссылки: ${it.message}", Toast.LENGTH_SHORT).show()
             }
     }
+
 }
