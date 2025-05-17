@@ -42,7 +42,8 @@
             android:background="@drawable/btn_blue_bg"
             android:layout_marginBottom="30dp"
             android:layout_marginHorizontal="20dp"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:visibility="gone"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

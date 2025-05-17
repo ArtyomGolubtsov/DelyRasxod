@@ -11,7 +11,7 @@ class ViewPagerAdapterGroupInfo(
 
     private val fragmentList = mutableListOf<Fragment>().apply {
         add(GroupInfoFragment.newInstance(groupId)) // Передаем groupId
-        add(TotalExpensesFragment())
+        add(TotalExpensesFragment.newInstance(groupId))
         add(EmptyFragment())
     }
 
