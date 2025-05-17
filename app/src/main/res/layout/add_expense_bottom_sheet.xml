@@ -10,33 +10,72 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Добавить расход"
-        android:textSize="20sp"
-        android:textColor="@color/white"
-        android:layout_marginBottom="16dp"/>
+        android:text="Добавить покупки"
+        android:textSize="24sp"
+        android:textFontWeight="700"
+        android:textColor="@color/white"/>
 
     <EditText
+        android:id="@+id/inputPurchaseName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Название"
         android:textColorHint="#CCFFFFFF"
-        android:textColor="@color/white"/>
+        android:textColor="@color/white"
+        android:background="@drawable/add_purchase_input_bg"
+        android:paddingVertical="14dp"
+        android:paddingHorizontal="14dp"
+        android:layout_marginTop="20dp"/>
 
-    <EditText
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Сумма"
-        android:inputType="numberDecimal"
-        android:textColorHint="#CCFFFFFF"
-        android:textColor="@color/white"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="10dp">
+
+        <EditText
+            android:id="@+id/inputPurchaseNum"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Количество"
+            android:inputType="numberDecimal"
+            android:textColorHint="#CCFFFFFF"
+            android:textColor="@color/white"
+            android:background="@drawable/add_purchase_input_bg"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="14dp"
+            android:layout_marginEnd="5dp"/>
+
+        <EditText
+            android:id="@+id/inputPurchasePrice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Цена"
+            android:inputType="numberDecimal"
+            android:textColorHint="#CCFFFFFF"
+            android:textColor="@color/white"
+            android:background="@drawable/add_purchase_input_bg"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="14dp"
+            android:layout_marginStart="5dp"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
 
     <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/addPurchaseBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Добавить"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/btn_grey_bg"
-        android:textColor="@color/white"/>
+        android:textSize="18sp"
+        android:layout_marginBottom="50dp"
+        android:background="@drawable/add_purchase_input_bg"
+        android:textColor="@color/white"
+        android:textFontWeight="700"/>
 
 </LinearLayout>
