@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".RequesitsActivity"
+    android:background="@color/app_bg">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnGoBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@null"
+            android:src="@drawable/btn_back"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginStart="20dp"/>
+
+        <TextView
+            android:id="@+id/mainTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Переводим денежки"
+            android:textColor="@color/white"
+            android:textSize="25sp"
+            android:textFontWeight="1000"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btnGoBack"
+            app:layout_constraintBottom_toBottomOf="@id/btnGoBack"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/requesitsBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:layout_marginTop="50dp"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/requesitsPhoneBox"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/requesitsPhoneTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Номер для пополнения"
+                android:textSize="20sp"
+                android:textColor="@color/white"
+                android:textFontWeight="700"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/activity_item_bg"
+                android:paddingVertical="16dp"
+                android:paddingHorizontal="10dp"
+                android:layout_marginTop="5dp">
+
+                <TextView
+                    android:id="@+id/requesitsPhone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Номер телефона"
+                    android:textSize="16sp"
+                    android:textColor="@color/white"
+                    android:textFontWeight="700"/>
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/requesitsBankBox"
+            android:orientation="vertical"
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/requesitsBankTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Банк получателя"
+                android:textSize="20sp"
+                android:textColor="@color/white"
+                android:textFontWeight="700"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/activity_item_bg"
+                android:paddingVertical="16dp"
+                android:paddingHorizontal="10dp"
+                android:layout_marginTop="5dp">
+
+                <TextView
+                    android:id="@+id/requesitsBank"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Банк получателя"
+                    android:textSize="16sp"
+                    android:textColor="@color/white"
+                    android:textFontWeight="700"/>
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/requesitsNameBox"
+            android:orientation="vertical"
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/requesitsNameTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ФИО получателя"
+                android:textSize="20sp"
+                android:textColor="@color/white"
+                android:textFontWeight="700"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/activity_item_bg"
+                android:paddingVertical="16dp"
+                android:paddingHorizontal="10dp"
+                android:layout_marginTop="5dp">
+
+                <TextView
+                    android:id="@+id/requesitsName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ФИО получателя"
+                    android:textSize="16sp"
+                    android:textColor="@color/white"
+                    android:textFontWeight="700"/>
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/expensesListBox"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="20dp"
+        android:layout_marginTop="40dp"
+        app:layout_constraintTop_toBottomOf="@id/requesitsBox"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/totalSumTitle">
+
+        <TextView
+            android:id="@+id/expensesListTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Список покупок"
+            android:textSize="20sp"
+            android:textColor="@color/white"
+            android:textFontWeight="700"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/expensesList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/totalSumTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Итого: много денежек ₽"
+        android:textSize="18sp"
+        android:textColor="@color/white"
+        android:textFontWeight="700"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintBottom_toTopOf="@id/confirmPaymentBtn"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        style="@style/BigBlueButton"
+        android:id="@+id/confirmPaymentBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Подтвердить платеж"
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="30dp"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"/>
+
+
+    <ImageView
+        android:id="@+id/ellipse1"
+        android:layout_width="400dp"
+        android:layout_height="300dp"
+        android:src="@drawable/ellipse_shape"
+        android:rotation="-45"
+        android:elevation="-10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="-150dp" />
+
+    <ImageView
+        android:id="@+id/ellipse2"
+        android:layout_width="400dp"
+        android:layout_height="300dp"
+        android:src="@drawable/ellipse_shape"
+        android:rotation="45"
+        android:elevation="-10dp"
+        android:layout_marginTop="280dp"
+        android:layout_marginEnd="-180dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <include
+        layout="@layout/navigation_bar"
+        android:id="@+id/navigationBar"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

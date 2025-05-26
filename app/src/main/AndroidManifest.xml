@@ -24,6 +24,15 @@
         android:theme="@style/Base.Theme.BankApp"
         tools:targetApi="31">
         <activity
+            android:name=".UserProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RequesitsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SentRequestActivity"
+            android:exported="false" />
+        <activity
             android:name=".AddExpensesForUserActivity"
             android:exported="false" />
         <activity
@@ -38,7 +47,8 @@
         <activity
             android:name=".ContactActivity"
             android:exported="false" />
-        <activity android:name=".CheckShopUserActivity"
+        <activity
+            android:name=".CheckShopUserActivity"
             android:exported="false" />
         <activity
             android:name=".SearchActivity"
