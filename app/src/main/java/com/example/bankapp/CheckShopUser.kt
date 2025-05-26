@@ -195,6 +195,8 @@ class CheckShopUserActivity : AppCompatActivity() {
             val userName: TextView = itemView.findViewById(R.id.userName)
             val userEmail: TextView = itemView.findViewById(R.id.userPhone)
             val userPhoto: ImageView = itemView.findViewById(R.id.userPhoto)
+            val addButton: ImageButton = itemView.findViewById(R.id.addFriendBtn)
+            val markContactBtn: CheckBox = itemView.findViewById(R.id.markContactBtn)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -208,6 +210,11 @@ class CheckShopUserActivity : AppCompatActivity() {
             val user = users[position]
             holder.userName.text = user.name
             holder.userEmail.text = user.email
+
+            // Скрываем кнопки
+            holder.addButton.visibility = View.GONE
+            holder.markContactBtn.visibility = View.GONE
+
             Glide.with(holder.itemView)
                 .load(user.UserPhoto.ifEmpty { null })
                 .placeholder(R.drawable.ic_person_outline)

@@ -1,5 +1,6 @@
 package com.example.bankapp
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -120,6 +121,7 @@ class MainActivity : AppCompatActivity() {
         private const val PICK_IMAGE_REQUEST = 1
     }
 
+    @SuppressLint("ResourceAsColor")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -136,7 +138,12 @@ class MainActivity : AppCompatActivity() {
             usersPhoto.startAnimation(clickAnimation)
         }
 
+        val mainIc: ImageView = findViewById(R.id.homeBtnIcon)
+        val mainTxtBtn: TextView = findViewById(R.id.homeBtnText)
+        mainTxtBtn.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
+        mainIc.setImageResource(R.drawable.ic_home_outline_active)
         // Lower menu
+
         val mainBtn: LinearLayout = findViewById(R.id.homeBtn)
         mainBtn.setOnClickListener {
             startActivity(Intent(this, MainActivity::class.java))
@@ -151,6 +158,12 @@ class MainActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
         }
 
+        val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)
+        contactsBtn.setOnClickListener {
+            startActivity(Intent(this, ContactActivity::class.java))
+            contactsBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
 
         val searchContactsBtn: ImageButton = findViewById(R.id.searchBtn)
         searchContactsBtn.setOnClickListener {
@@ -159,6 +172,8 @@ class MainActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
             searchContactsBtn.startAnimation(clickAnimation)
         }
+
+
 
         userNameTextView = findViewById(R.id.userNameTextView)
 

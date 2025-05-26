@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.CheckBox
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -258,6 +259,8 @@ class AddExpensesForUserActivity : AppCompatActivity() {
             val userName: TextView = itemView.findViewById(R.id.userName)
             val userEmail: TextView = itemView.findViewById(R.id.userPhone)
             val userPhoto: ImageView = itemView.findViewById(R.id.userPhoto)
+            val addButton: ImageButton = itemView.findViewById(R.id.addFriendBtn)
+            val markContactBtn: CheckBox = itemView.findViewById(R.id.markContactBtn)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -275,6 +278,8 @@ class AddExpensesForUserActivity : AppCompatActivity() {
                 .load(user.UserPhoto.ifEmpty { null })
                 .placeholder(R.drawable.ic_person_outline)
                 .into(holder.userPhoto)
+            holder.addButton.visibility = View.GONE
+            holder.markContactBtn.visibility = View.GONE
         }
 
         override fun getItemCount() = users.size
