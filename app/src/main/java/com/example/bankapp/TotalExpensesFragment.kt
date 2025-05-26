@@ -30,7 +30,6 @@ class TotalExpensesFragment : Fragment() {
     private var groupId: String? = null
     private var isAdmin = false
     private val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-
     private val membersList = mutableListOf<User>()
     private lateinit var membersAdapter: MembersAdapter
 
@@ -39,7 +38,8 @@ class TotalExpensesFragment : Fragment() {
         val name: String = "",
         val email: String = "",
         val UserPhoto: String = "",
-        val isAdmin: Boolean = false
+        val isAdmin: Boolean = false,
+        var paymentStatus: String? = null // Поле для статуса оплаты
     )
 
     companion object {
@@ -68,6 +68,8 @@ class TotalExpensesFragment : Fragment() {
         mainBtn = view.findViewById(R.id.mainBtn)
         saveExpensesBtn = view.findViewById(R.id.saveExpensesBtn)
 
+        saveExpensesBtn.visibility = if (isAdmin) View.VISIBLE else View.GONE
+
         setupRecyclerView()
         checkAdminStatus()
         loadGroupMembers()
@@ -91,7 +93,7 @@ class TotalExpensesFragment : Fragment() {
                 .addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         val hasProducts = snapshot.childrenCount > 0
-                        saveExpensesBtn.visibility = if (hasProducts) View.VISIBLE else View.GONE
+                        saveExpensesBtn.visibility = if ((hasProducts)&&(isAdmin)) View.VISIBLE else View.GONE
                     }
 
                     override fun onCancelled(error: DatabaseError) {
@@ -143,7 +145,6 @@ class TotalExpensesFragment : Fragment() {
                         val adminId = snapshot.getValue(String::class.java)
                         isAdmin = adminId == currentUserId
                         mainBtn.text = if (isAdmin) "Добавить расходы:)" else "Оплатить долг"
-                        mainBtn.visibility = if (isAdmin) View.VISIBLE else View.GONE
                         membersAdapter.isAdmin = isAdmin
                     }
 
@@ -212,6 +213,7 @@ class TotalExpensesFragment : Fragment() {
                     user?.let {
                         if (!membersList.any { existing -> existing.userId == userId }) {
                             membersList.add(it)
+                            checkPaymentStatus(userId) // Проверка статуса оплаты
                             membersAdapter.notifyDataSetChanged()
                         }
                     }
@@ -221,6 +223,46 @@ class TotalExpensesFragment : Fragment() {
                     Log.e("TotalExpenses", "Error loading user details: ${error.message}")
                 }
             })
+    }
+
+    private fun checkPaymentStatus(userId: String) {
+        database.child("Groups").child(groupId!!).child("PayUsers").child(userId).child("Status")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val status = snapshot.getValue(Boolean::class.java) // Получаем статус как Boolean
+
+                    updatePaymentStatus(userId, status)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("TotalExpenses", "Error loading payment status: ${error.message}")
+                }
+            })
+    }
+
+    private fun updatePaymentStatus(userId: String, status: Boolean?) {
+        val userIndex = membersList.indexOfFirst { it.userId == userId }
+        if (userIndex != -1) {
+            val paymentStatus = when (status) {
+                true -> "Оплатил"
+                null -> "Не оплатил"
+                false -> "Подтвердить платеж"
+            }
+            val textColor = when (status) {
+                true -> R.color.ctgr_party
+                null -> R.color.alert_red
+                false -> R.color.ctgr_other
+            }
+
+            // Обновляем поле paymentStatus для пользователя
+            membersList[userIndex] = membersList[userIndex].copy(paymentStatus = paymentStatus)
+
+            // Уведомление адаптера об изменениях
+            membersAdapter.notifyItemChanged(userIndex)
+
+            // Устанавливаем статус оплаты в адаптере
+            membersAdapter.updatePaymentText(userIndex, paymentStatus, textColor)
+        }
     }
 
     inner class MembersAdapter(
@@ -237,6 +279,7 @@ class TotalExpensesFragment : Fragment() {
             val userPhoto: ImageView = itemView.findViewById(R.id.userPhoto)
             val addButton: ImageButton = itemView.findViewById(R.id.addFriendBtn)
             val bestFriendCheckbox: CheckBox = itemView.findViewById(R.id.markContactBtn)
+            val paymentStatusText: TextView = itemView.findViewById(R.id.contactSumOrStatus)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -248,14 +291,14 @@ class TotalExpensesFragment : Fragment() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val user = users[position]
             val isCurrentUser = user.userId == currentUserId
-
+            holder.paymentStatusText.visibility = View.VISIBLE
             // Устанавливаем текст и цвет в зависимости от того, текущий это пользователь или нет
             holder.userName.text = if (isCurrentUser) "Вы" else user.name
             holder.userName.setTextColor(
                 if (isCurrentUser) {
-                    ContextCompat.getColor(holder.itemView.context, R.color.ctgr_party, )
+                    ContextCompat.getColor(holder.itemView.context, R.color.ctgr_party)
                 } else {
-                    ContextCompat.getColor(holder.itemView.context, R.color.white, )
+                    ContextCompat.getColor(holder.itemView.context, R.color.white)
                 }
             )
 
@@ -269,6 +312,17 @@ class TotalExpensesFragment : Fragment() {
             holder.addButton.visibility = View.GONE
             holder.bestFriendCheckbox.visibility = View.GONE
 
+            // Устанавливаем текст статуса оплаты
+            holder.paymentStatusText.text = user.paymentStatus
+            holder.paymentStatusText.setTextColor(
+                ContextCompat.getColor(holder.itemView.context, when (user.paymentStatus) {
+                    "Оплатил" -> R.color.ctgr_party
+                    "Подтвердить платеж" -> R.color.ctgr_other
+                    "Не оплатил" -> R.color.alert_red
+                    else -> R.color.white // По умолчанию
+                })
+            )
+
             val clickAnimation = AnimationUtils.loadAnimation(holder.itemView.context, R.anim.keyboardfirst)
 
             holder.itemView.setOnClickListener {
@@ -278,8 +332,19 @@ class TotalExpensesFragment : Fragment() {
 
             // Показываем иконку администратора
             if (user.isAdmin) {
+                holder.paymentStatusText.visibility = View.GONE
                 holder.bestFriendCheckbox.visibility = View.VISIBLE
                 holder.bestFriendCheckbox.isChecked = true
+            }
+        }
+
+        // Метод для обновления текста статуса оплаты
+        fun updatePaymentText(position: Int, statusText: String, colorId: Int) {
+            if (position in users.indices) {
+                notifyItemChanged(position)
+                val holder = membersRecyclerView.findViewHolderForAdapterPosition(position) as? ViewHolder
+                holder?.paymentStatusText?.text = statusText
+                holder?.paymentStatusText?.setTextColor(ContextCompat.getColor(membersRecyclerView.context, colorId))
             }
         }
 
