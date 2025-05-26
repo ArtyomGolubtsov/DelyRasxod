@@ -1,5 +1,6 @@
 package com.example.bankapp
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,6 +10,7 @@ import android.widget.CheckBox
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -174,16 +176,26 @@ class GroupInfoFragment : Fragment() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val user = users[position]
+            // Получаем текущего пользователя напрямую из FirebaseAuth
+            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+            val isCurrentUser = user.userId == currentUserId
 
-            holder.userName.text = user.name
+            holder.userName.text = if (isCurrentUser) "Вы" else user.name
             holder.userEmail.text = user.email
+
+            holder.userName.setTextColor(
+                if (isCurrentUser) {
+                    ContextCompat.getColor(holder.itemView.context, R.color.ctgr_party)
+                } else {
+                    ContextCompat.getColor(holder.itemView.context, R.color.white)
+                }
+            )
 
             Glide.with(holder.itemView.context)
                 .load(user.UserPhoto)
                 .placeholder(R.drawable.ic_person_outline)
                 .into(holder.userPhoto)
 
-            // Скрываем ненужные элементы для списка участников
             holder.addButton.visibility = View.GONE
             holder.bestFriendCheckbox.visibility = View.GONE
         }

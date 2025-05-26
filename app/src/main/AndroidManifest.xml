@@ -38,6 +38,8 @@
         <activity
             android:name=".ContactActivity"
             android:exported="false" />
+        <activity android:name=".CheckShopUserActivity"
+            android:exported="false" />
         <activity
             android:name=".SearchActivity"
             android:exported="false" />

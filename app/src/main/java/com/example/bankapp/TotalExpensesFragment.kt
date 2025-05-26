@@ -12,6 +12,8 @@ import android.widget.CheckBox
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -120,6 +122,19 @@ class TotalExpensesFragment : Fragment() {
         }
     }
 
+    private fun openCheckShopUser(userId: String) {
+        groupId?.let { id ->
+            val intent = Intent(requireContext(), CheckShopUserActivity::class.java).apply {
+                putExtra("GROUP_ID", id)
+                putExtra("USER_ID", userId)
+            }
+            startActivity(intent)
+            requireActivity().overridePendingTransition(0, 0)
+        } ?: run {
+            Toast.makeText(requireContext(), "Ошибка: ID группы не установлен", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun checkAdminStatus() {
         groupId?.let { id ->
             database.child("Groups").child(id).child("admin")
@@ -129,7 +144,7 @@ class TotalExpensesFragment : Fragment() {
                         isAdmin = adminId == currentUserId
                         mainBtn.text = if (isAdmin) "Добавить расходы:)" else "Оплатить долг"
                         mainBtn.visibility = if (isAdmin) View.VISIBLE else View.GONE
-                        Log.d("AdminCheck", "Admin ID: $adminId, Current user: $currentUserId, Is admin: $isAdmin")
+                        membersAdapter.isAdmin = isAdmin
                     }
 
                     override fun onCancelled(error: DatabaseError) {
@@ -143,8 +158,12 @@ class TotalExpensesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        membersAdapter = MembersAdapter(membersList, isAdmin) { userId ->
-            openAddExpensesForUserActivity(userId)
+        membersAdapter = MembersAdapter(membersList, currentUserId) { userId ->
+            if (isAdmin) {
+                openAddExpensesForUserActivity(userId)
+            } else {
+                currentUserId?.let { openCheckShopUser(it) }
+            }
         }
         membersRecyclerView.apply {
             layoutManager = LinearLayoutManager(context)
@@ -154,14 +173,12 @@ class TotalExpensesFragment : Fragment() {
 
     private fun loadGroupMembers() {
         groupId?.let { id ->
-            // Сначала загружаем администратора
             database.child("Groups").child(id).child("admin")
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(adminSnapshot: DataSnapshot) {
                         val adminId = adminSnapshot.getValue(String::class.java)
                         adminId?.let { loadUserDetails(it, true) }
 
-                        // Затем загружаем остальных пользователей
                         database.child("Groups").child(id).child("Users")
                             .addListenerForSingleValueEvent(object : ValueEventListener {
                                 override fun onDataChange(usersSnapshot: DataSnapshot) {
@@ -208,9 +225,11 @@ class TotalExpensesFragment : Fragment() {
 
     inner class MembersAdapter(
         private val users: List<User>,
-        private val isAdmin: Boolean,
+        private val currentUserId: String?,
         private val onItemClick: (String) -> Unit
     ) : RecyclerView.Adapter<MembersAdapter.ViewHolder>() {
+
+        var isAdmin = false
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val userName: TextView = itemView.findViewById(R.id.userName)
@@ -228,7 +247,18 @@ class TotalExpensesFragment : Fragment() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val user = users[position]
-            holder.userName.text = user.name
+            val isCurrentUser = user.userId == currentUserId
+
+            // Устанавливаем текст и цвет в зависимости от того, текущий это пользователь или нет
+            holder.userName.text = if (isCurrentUser) "Вы" else user.name
+            holder.userName.setTextColor(
+                if (isCurrentUser) {
+                    ContextCompat.getColor(holder.itemView.context, R.color.ctgr_party, )
+                } else {
+                    ContextCompat.getColor(holder.itemView.context, R.color.white, )
+                }
+            )
+
             holder.userEmail.text = user.email
 
             Glide.with(holder.itemView.context)
@@ -241,10 +271,15 @@ class TotalExpensesFragment : Fragment() {
 
             val clickAnimation = AnimationUtils.loadAnimation(holder.itemView.context, R.anim.keyboardfirst)
 
-            // Обработка нажатия на элемент списка
             holder.itemView.setOnClickListener {
                 it.startAnimation(clickAnimation)
                 onItemClick(user.userId)
+            }
+
+            // Показываем иконку администратора
+            if (user.isAdmin) {
+                holder.bestFriendCheckbox.visibility = View.VISIBLE
+                holder.bestFriendCheckbox.isChecked = true
             }
         }
 

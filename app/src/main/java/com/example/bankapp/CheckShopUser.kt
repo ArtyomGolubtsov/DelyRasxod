@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.CheckBox
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -25,19 +26,18 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.MutableData
-import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 
-class AddExpensesForUserActivity : AppCompatActivity() {
+class CheckShopUserActivity : AppCompatActivity() {
 
     private lateinit var database: DatabaseReference
     private lateinit var userContactBox: RecyclerView
-    private lateinit var chooseExpensesList: RecyclerView
-    private lateinit var saveExpensesBtn: AppCompatButton
+    private lateinit var userExpensesList: RecyclerView
+    private lateinit var confirmButton: AppCompatButton
+    private lateinit var questionTxt: TextView
     private var groupId: String = ""
     private var userId: String = ""
 
@@ -55,8 +55,7 @@ class AddExpensesForUserActivity : AppCompatActivity() {
     data class ExpenseItem(
         val name: String,
         val price: Int,
-        var availableQuantity: Int,
-        var selectedQuantity: Int = 0
+        val quantity: Int
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,30 +76,32 @@ class AddExpensesForUserActivity : AppCompatActivity() {
         setupAdapters()
         loadData()
         setupClickListeners()
+
     }
 
     private fun initViews() {
         userContactBox = findViewById(R.id.userContactBox)
-        chooseExpensesList = findViewById(R.id.chooseExpensesList)
-        saveExpensesBtn = findViewById(R.id.saveExpensesBtn)
+        userExpensesList = findViewById(R.id.chooseExpensesList)
+        confirmButton = findViewById(R.id.saveExpensesBtn)
+        questionTxt = findViewById(R.id.txtAddQustion)
+
+        findViewById<TextView>(R.id.mainTitle).text = "Ваши покупки"
+        confirmButton.text = "Понятно, я должен(а) ###"
+        questionTxt.text = "Список продуктов"
     }
 
     private fun setupAdapters() {
         userContactBox.layoutManager = LinearLayoutManager(this)
         userContactBox.adapter = UserAdapter(emptyList())
 
-        expenseAdapter = ExpenseAdapter(expenseItems,
-            onAddClick = { item, position -> handleAddItem(item, position) },
-            onIncrement = { item, position -> handleQuantityChange(item, position, 1) },
-            onDecrement = { item, position -> handleQuantityChange(item, position, -1) }
-        )
-        chooseExpensesList.layoutManager = LinearLayoutManager(this)
-        chooseExpensesList.adapter = expenseAdapter
+        expenseAdapter = ExpenseAdapter(expenseItems)
+        userExpensesList.layoutManager = LinearLayoutManager(this)
+        userExpensesList.adapter = expenseAdapter
     }
 
     private fun loadData() {
         loadUserData()
-        loadGroupExpenses()
+        loadUserPurchases()
     }
 
     private fun loadUserData() {
@@ -108,7 +109,9 @@ class AddExpensesForUserActivity : AppCompatActivity() {
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val user = snapshot.getValue(User::class.java)?.copy(userId = userId)
-                    user?.let { userContactBox.adapter = UserAdapter(listOf(it)) }
+                    user?.let {
+                        userContactBox.adapter = UserAdapter(listOf(it))
+                    }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -117,109 +120,43 @@ class AddExpensesForUserActivity : AppCompatActivity() {
             })
     }
 
-    private fun loadGroupExpenses() {
-        database.child("Groups").child(groupId).child("EatCheck")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    expenseItems.clear()
-                    snapshot.children.forEach { product ->
-                        val name = product.key ?: return@forEach
-                        val price = product.child("Price").getValue(Int::class.java) ?: 0
-                        val quantity = product.child("quantity").getValue(Int::class.java) ?: 0
-                        expenseItems.add(ExpenseItem(name, price, quantity))
-                    }
-                    loadUserSelectedItems()
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    showError("Ошибка загрузки продуктов: ${error.message}")
-                }
-            })
-    }
-
-    private fun loadUserSelectedItems() {
+    private fun loadUserPurchases() {
         database.child("Groups").child(groupId).child("Users").child(userId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    expenseItems.clear()
+                    var total = 0
+
                     snapshot.children.forEach { product ->
-                        val name = product.key ?: return@forEach
-                        val quantity = product.child("quantity").getValue(Int::class.java) ?: 0
-                        expenseItems.find { it.name == name }?.let {
-                            it.selectedQuantity = quantity
-                            it.availableQuantity -= quantity
+                        // Пропускаем служебные поля
+                        if (product.key !in listOf("total", "userId", userId)) {
+                            val name = product.key ?: return@forEach
+                            val price = product.child("Price").getValue(Int::class.java) ?: 0
+                            val quantity = product.child("quantity").getValue(Int::class.java) ?: 0
+
+                            expenseItems.add(ExpenseItem(name, price, quantity))
+                            total += price * quantity
                         }
                     }
+
+                    updateTotalSum(total)
                     expenseAdapter.notifyDataSetChanged()
-                    updateTotalSum()
+
+                    if (expenseItems.isEmpty()) {
+                        questionTxt.text = "У вас нет покупок в этом чеке"
+                        confirmButton.visibility = View.GONE
+                    }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    showError("Ошибка загрузки выбранных товаров: ${error.message}")
+                    showError("Ошибка загрузки ваших покупок: ${error.message}")
                 }
             })
     }
 
-    private fun handleAddItem(item: ExpenseItem, position: Int) {
-        if (item.availableQuantity > 0) {
-            updateItemQuantity(item, position, 1)
-        } else {
-            showError("Нет доступного количества")
-        }
-    }
-
-    private fun handleQuantityChange(item: ExpenseItem, position: Int, delta: Int) {
-        when {
-            delta > 0 && item.availableQuantity <= 0 -> showError("Недостаточно товара")
-            delta < 0 && item.selectedQuantity <= 0 -> return
-            else -> updateItemQuantity(item, position, delta)
-        }
-    }
-
-    private fun updateItemQuantity(item: ExpenseItem, position: Int, delta: Int) {
-        val eatCheckRef = database.child("Groups").child(groupId).child("EatCheck").child(item.name)
-        val userRef = database.child("Groups").child(groupId).child("Users").child(userId).child(item.name)
-
-        eatCheckRef.runTransaction(object : Transaction.Handler {
-            override fun doTransaction(currentData: MutableData): Transaction.Result {
-                val current = currentData.child("quantity").getValue(Int::class.java) ?: return Transaction.abort()
-                if (current - delta < 0) return Transaction.abort()
-                currentData.child("quantity").value = current - delta
-                return Transaction.success(currentData)
-            }
-
-            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
-                if (committed) {
-                    userRef.runTransaction(object : Transaction.Handler {
-                        override fun doTransaction(currentUserData: MutableData): Transaction.Result {
-                            val currentUserQty = currentUserData.child("quantity").getValue(Int::class.java) ?: 0
-                            currentUserData.child("quantity").value = currentUserQty + delta
-                            currentUserData.child("Price").value = item.price * (currentUserQty + delta)
-                            return Transaction.success(currentUserData)
-                        }
-
-                        override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
-                            runOnUiThread {
-                                if (committed) {
-                                    item.availableQuantity -= delta
-                                    item.selectedQuantity += delta
-                                    expenseAdapter.notifyItemChanged(position)
-                                    updateTotalSum()
-                                } else {
-                                }
-                            }
-                        }
-                    })
-                } else {
-                    showError("Ошибка обновления количества")
-                }
-            }
-        })
-    }
-
-    private fun updateTotalSum() {
-        val total = expenseItems.sumOf { it.price * it.selectedQuantity }
+    private fun updateTotalSum(total: Int) {
         val formatter = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US))
-        saveExpensesBtn.text = "Сохранить сумму (${formatter.format(total)} ₽)"
+        confirmButton.text = "Понятно, я должен(а) ${formatter.format(total)} ₽"
     }
 
     private fun setupClickListeners() {
@@ -229,7 +166,7 @@ class AddExpensesForUserActivity : AppCompatActivity() {
             finishWithAnimation()
         }
 
-        saveExpensesBtn.setOnClickListener {
+        confirmButton.setOnClickListener {
             finishWithAnimation()
         }
 
@@ -281,10 +218,7 @@ class AddExpensesForUserActivity : AppCompatActivity() {
     }
 
     private inner class ExpenseAdapter(
-        private val items: List<ExpenseItem>,
-        private val onAddClick: (ExpenseItem, Int) -> Unit,
-        private val onIncrement: (ExpenseItem, Int) -> Unit,
-        private val onDecrement: (ExpenseItem, Int) -> Unit
+        private val items: List<ExpenseItem>
     ) : RecyclerView.Adapter<ExpenseAdapter.ViewHolder>() {
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -293,9 +227,6 @@ class AddExpensesForUserActivity : AppCompatActivity() {
             val quantity: TextView = itemView.findViewById(R.id.expenseNum)
             val addButton: AppCompatButton = itemView.findViewById(R.id.addExpenseBtn)
             val countBox: LinearLayout = itemView.findViewById(R.id.countBox)
-            val counter: TextView = itemView.findViewById(R.id.tv_counter)
-            val incrementBtn: ImageButton = itemView.findViewById(R.id.btn_increment)
-            val decrementBtn: ImageButton = itemView.findViewById(R.id.btnAddExpense)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -310,20 +241,11 @@ class AddExpensesForUserActivity : AppCompatActivity() {
             with(holder) {
                 title.text = item.name
                 price.text = "${item.price} ₽"
-                quantity.text = " × ${item.availableQuantity}"
+                quantity.text = " × ${item.quantity}"
 
-                if (item.selectedQuantity > 0) {
-                    addButton.visibility = View.GONE
-                    countBox.visibility = View.VISIBLE
-                    counter.text = item.selectedQuantity.toString()
-                } else {
-                    addButton.visibility = View.VISIBLE
-                    countBox.visibility = View.GONE
-                }
-
-                addButton.setOnClickListener { onAddClick(item, position) }
-                incrementBtn.setOnClickListener { onIncrement(item, position) }
-                decrementBtn.setOnClickListener { onDecrement(item, position) }
+                // Скрываем интерактивные элементы
+                addButton.visibility = View.GONE
+                countBox.visibility = View.GONE
             }
         }
 
@@ -337,7 +259,7 @@ class AddExpensesForUserActivity : AppCompatActivity() {
 
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-        Log.e("AddExpenses", message)
+        Log.e("CheckShopUser", message)
     }
 
     override fun finish() {
