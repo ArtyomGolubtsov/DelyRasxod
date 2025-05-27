@@ -317,8 +317,8 @@
                           <map>
                             <entry key="assetSourceType" value="FILE" />
                             <entry key="color" value="ffffff" />
-                            <entry key="outputName" value="ic_quit_account" />
-                            <entry key="sourceFile" value="C:\Users\1\Downloads\icon.svg" />
+                            <entry key="outputName" value="ic_confirm" />
+                            <entry key="sourceFile" value="C:\Users\1\Downloads\check-mark-svgrepo-com.svg" />
                           </map>
                         </option>
                       </PersistentState>

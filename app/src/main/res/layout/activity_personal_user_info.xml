@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PersonalUserInfoActivity"
+    android:background="@color/app_bg"
+    android:paddingHorizontal="20dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnGoBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/btn_back"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Персональная\nинформация"
+            android:textColor="@color/white"
+            android:textSize="25sp"
+            android:textFontWeight="700"
+            android:textAlignment="center"
+            app:layout_constraintTop_toTopOf="@id/btnGoBack"
+            app:layout_constraintBottom_toBottomOf="@id/btnGoBack"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <ImageButton
+            android:id="@+id/editProfileBtn"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="@drawable/keyboard_btn_bg"
+            android:src="@drawable/ic_confirm"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/white" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/userInfoBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginTop="30dp"
+        app:layout_constraintTop_toBottomOf="@id/header">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/userProfileImageBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="60dp">
+
+            <ImageView
+                android:id="@+id/userProfileImage"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@drawable/placeholder"
+                android:scaleType="centerCrop"/>
+
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/userName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Имя"
+            android:textSize="20sp"
+            android:textColor="@color/white"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/editUserInfoBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/userInfoBox">
+
+        <LinearLayout
+            android:id="@+id/editUserNameContainer"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ФИО"
+                android:textColor="@color/polycy_tips"
+                android:textSize="16sp"
+                android:labelFor="@id/editUserName"
+                app:layout_constraintBottom_toTopOf="@id/editUserName"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <EditText
+                android:id="@+id/editUserName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:inputType="textPersonName"
+                android:textColor="@color/white"
+                app:layout_constraintTop_toBottomOf="@id/mainTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:paddingBottom="20dp"
+                android:drawableLeft="@drawable/ic_person_outline" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/editUserPhoneContainer"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Номер телефона"
+                android:textColor="@color/polycy_tips"
+                android:textSize="16sp"
+                android:labelFor="@id/editUserPhone"
+                app:layout_constraintBottom_toTopOf="@id/editUserPhone"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <EditText
+                android:id="@+id/editUserPhone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:inputType="textPersonName"
+                android:textColor="@color/white"
+                app:layout_constraintTop_toBottomOf="@id/mainTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:paddingBottom="20dp"
+                android:drawableLeft="@drawable/ic_phone_outline" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/editUserBirthdayContainer"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Дата рождения"
+                android:textColor="@color/polycy_tips"
+                android:textSize="16sp"
+                android:labelFor="@id/editUserBirthday"
+                app:layout_constraintBottom_toTopOf="@id/editUserBirthday"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <LinearLayout
+                android:id="@+id/editUserBirthday"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp"
+                android:weightSum="3">
+
+                <LinearLayout
+                    android:id="@+id/spinner_day"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="15dp">
+
+                    <Spinner
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:textAlignment="center"
+                        android:spinnerMode="dropdown"
+                        android:paddingVertical="10dp"/>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#232533"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/spinner_month"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginHorizontal="15dp">
+
+                    <Spinner
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:textAlignment="center"
+                        android:spinnerMode="dropdown"
+                        android:paddingVertical="10dp"/>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#232533"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/spinner_year"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="15dp">
+
+                    <Spinner
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:textAlignment="center"
+                        android:spinnerMode="dropdown"
+                        android:paddingVertical="10dp"/>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#232533"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <include
+        layout="@layout/navigation_bar"
+        android:id="@+id/navigationBar"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

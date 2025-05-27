@@ -55,8 +55,8 @@
                 android:text="ФИО"
                 android:textColor="@color/polycy_tips"
                 android:textSize="16sp"
-                android:labelFor="@id/eMail"
-                app:layout_constraintBottom_toTopOf="@id/eMail"
+                android:labelFor="@id/userName"
+                app:layout_constraintBottom_toTopOf="@id/userName"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <EditText

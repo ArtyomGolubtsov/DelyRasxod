@@ -103,7 +103,7 @@
             android:id="@+id/contactUserPhone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Адресс почты"
+            android:text="Адрес почты"
             android:textSize="16sp"
             android:textColor="@color/polycy_tips"/>
 
