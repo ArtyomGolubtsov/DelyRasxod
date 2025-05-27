@@ -24,6 +24,39 @@
                 android:text="Текст"
                 android:layout_marginTop="20dp"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="С кем делим?"
+                android:textSize="18sp"
+                android:layout_marginTop="40dp"
+                android:textFontWeight="700"
+                android:textColor="@color/white" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Поровну"
+                    android:textSize="14sp"
+                    android:textColor="@color/white"/>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/divideExpensesSwitch"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:track="@drawable/activity_item_bg"
+                    app:thumbTint="@color/polycy_tips"
+                    />
+
+            </LinearLayout>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/membersList"
                 android:layout_width="match_parent"
