@@ -82,6 +82,10 @@ class TotalExpensesFragment : Fragment() {
             if (isAdmin) {
                 openCheckDivideActivity(null)
             }
+            else
+            {
+                getAdminIdAndOpenRequesits(currentUserId, groupId)
+            }
         }
 
         return view
@@ -102,6 +106,33 @@ class TotalExpensesFragment : Fragment() {
                     }
                 })
         }
+    }
+
+    private fun getAdminIdAndOpenRequesits(userId: String?, groupId: String?) {
+        groupId?.let { id ->
+            database.child("Groups").child(id).child("admin")
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val adminId = snapshot.getValue(String::class.java)
+                        openRequesitsActivity(userId, id, adminId)
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.e("TotalExpenses", "Error getting admin ID: ${error.message}")
+                    }
+                })
+        }
+    }
+
+    // Метод для открытия RequesitsActivity
+    private fun openRequesitsActivity(userId: String?, groupId: String?, adminId: String?) {
+        val intent = Intent(requireContext(), RequesitsActivity::class.java).apply {
+            putExtra("USER_ID", userId)
+            putExtra("GROUP_ID", groupId)
+            putExtra("ADMIN_ID", adminId)  // Передаем ID админа
+        }
+        startActivity(intent)
+        requireActivity().overridePendingTransition(0, 0)
     }
 
     private fun openCheckDivideActivity(userId: String?) {
@@ -226,16 +257,15 @@ class TotalExpensesFragment : Fragment() {
     }
 
     private fun checkPaymentStatus(userId: String) {
-        database.child("Groups").child(groupId!!).child("PayUsers").child(userId).child("Status")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
+        database.child("Groups").child(groupId!!).child("PayUsers").child(userId)
+            .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val status = snapshot.getValue(Boolean::class.java) // Получаем статус как Boolean
-
+                    val status = snapshot.getValue(Boolean::class.java)
                     updatePaymentStatus(userId, status)
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.e("TotalExpenses", "Error loading payment status: ${error.message}")
+                    Log.e("TotalExpenses", "Error observing payment status: ${error.message}")
                 }
             })
     }

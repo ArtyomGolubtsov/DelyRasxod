@@ -91,5 +91,20 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
+        <Button
+            android:id="@+id/payUsers"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Оплатил"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textFontWeight="700"
+            android:paddingHorizontal="20dp"
+            android:background="@drawable/btn_blue_bg"
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
