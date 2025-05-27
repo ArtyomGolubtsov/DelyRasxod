@@ -64,20 +64,6 @@
                 android:layout_marginTop="20dp"/>
         </LinearLayout>
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/saveExpensesBtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Отправить запрос"
-            android:textColor="@color/white"
-            android:textSize="22sp"
-            android:textFontWeight="700"
-            android:background="@drawable/btn_blue_bg"
-            android:layout_marginBottom="30dp"
-            android:layout_marginHorizontal="20dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:visibility="gone"/>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>
