@@ -169,7 +169,6 @@
                 android:id="@+id/userBank"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:prompt="Выберите банк"
                 android:background="@drawable/spinner_bg"
                 android:paddingStart="10dp"
                 android:paddingEnd="30dp"
