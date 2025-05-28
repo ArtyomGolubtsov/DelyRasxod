@@ -44,6 +44,11 @@ class GroupMembersChoiceActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
+        proflBtn.setOnClickListener {
+            startActivity(Intent(this, UserProfileActivity::class.java))
+            overridePendingTransition(0, 0)
+        }
 
         // Получаем ID группы из интента
         groupId = intent.getStringExtra("GROUP_ID") ?: ""

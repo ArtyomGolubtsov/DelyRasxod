@@ -187,6 +187,12 @@ class CheckShopUserActivity : AppCompatActivity() {
                 it.startAnimation(clickAnimation)
             }
         }
+        val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
+        proflBtn.setOnClickListener {
+            startActivity(Intent(this, UserProfileActivity::class.java))
+            proflBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
     }
 
     private inner class UserAdapter(private val users: List<User>) : RecyclerView.Adapter<UserAdapter.ViewHolder>() {

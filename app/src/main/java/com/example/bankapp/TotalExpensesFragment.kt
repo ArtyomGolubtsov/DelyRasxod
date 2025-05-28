@@ -26,7 +26,6 @@ class TotalExpensesFragment : Fragment() {
     private lateinit var membersRecyclerView: RecyclerView
     private lateinit var database: DatabaseReference
     private lateinit var mainBtn: Button
-    private lateinit var saveExpensesBtn: Button
     private var groupId: String? = null
     private var isAdmin = false
     private val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
@@ -66,14 +65,12 @@ class TotalExpensesFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_total_expenses, container, false)
         membersRecyclerView = view.findViewById(R.id.membersList)
         mainBtn = view.findViewById(R.id.mainBtn)
-        saveExpensesBtn = view.findViewById(R.id.saveExpensesBtn)
 
-        saveExpensesBtn.visibility = if (isAdmin) View.VISIBLE else View.GONE
+
 
         setupRecyclerView()
         checkAdminStatus()
         loadGroupMembers()
-        checkProductsExistence()
 
         val clickAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.keyboardfirst)
 
@@ -89,23 +86,6 @@ class TotalExpensesFragment : Fragment() {
         }
 
         return view
-    }
-
-    private fun checkProductsExistence() {
-        groupId?.let { id ->
-            database.child("Groups").child(id).child("Eat")
-                .addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        val hasProducts = snapshot.childrenCount > 0
-                        saveExpensesBtn.visibility = if ((hasProducts)&&(isAdmin)) View.VISIBLE else View.GONE
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        Log.e("TotalExpenses", "Error checking products: ${error.message}")
-                        saveExpensesBtn.visibility = View.GONE
-                    }
-                })
-        }
     }
 
     private fun getAdminIdAndOpenRequesits(userId: String?, groupId: String?) {

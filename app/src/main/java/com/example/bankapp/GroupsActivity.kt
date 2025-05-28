@@ -50,6 +50,7 @@ class GroupAdapter(
         val groupImage: ImageView = view.findViewById(R.id.activityItemImage)
     }
 
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.activity_item, parent, false)
@@ -211,6 +212,12 @@ class GroupsActivity : AppCompatActivity(), GroupAdapter.OnItemClickListener {
             startActivity(intent)
             overridePendingTransition(0, 0)
             mainBtn.startAnimation(clickAnimation)
+        }
+        val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
+        proflBtn.setOnClickListener {
+            startActivity(Intent(this, UserProfileActivity::class.java))
+            proflBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
         }
 
         val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)

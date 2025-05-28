@@ -41,6 +41,7 @@ class AddExpensesForUserActivity : AppCompatActivity() {
     private lateinit var saveExpensesBtn: AppCompatButton
     private var groupId: String = ""
     private var userId: String = ""
+    private var isUserPayed: Boolean = false
 
     private val expenseItems = mutableListOf<ExpenseItem>()
     private lateinit var expenseAdapter: ExpenseAdapter
@@ -100,8 +101,25 @@ class AddExpensesForUserActivity : AppCompatActivity() {
     }
 
     private fun loadData() {
+        loadUserPaymentStatus()
         loadUserData()
         loadGroupExpenses()
+    }
+
+    private fun loadUserPaymentStatus() {
+        database.child("Groups").child(groupId).child("PayUsers").child(userId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    isUserPayed = snapshot.getValue(Boolean::class.java) ?: false
+                    // Обновляем адаптер после загрузки статуса оплаты
+                    userContactBox.adapter?.notifyDataSetChanged()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    // Если узла PayUsers нет, считаем что пользователь не оплатил
+                    isUserPayed = false
+                }
+            })
     }
 
     private fun loadUserData() {
@@ -144,10 +162,12 @@ class AddExpensesForUserActivity : AppCompatActivity() {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     snapshot.children.forEach { product ->
                         val name = product.key ?: return@forEach
-                        val quantity = product.child("quantity").getValue(Int::class.java) ?: 0
-                        expenseItems.find { it.name == name }?.let {
-                            it.selectedQuantity = quantity
-                            it.availableQuantity -= quantity
+                        if (name != userId) { // Пропускаем запись о самом пользователе
+                            val quantity = product.child("quantity").getValue(Int::class.java) ?: 0
+                            expenseItems.find { it.name == name }?.let {
+                                it.selectedQuantity = quantity
+                                it.availableQuantity -= quantity
+                            }
                         }
                     }
                     expenseAdapter.notifyDataSetChanged()
@@ -206,6 +226,7 @@ class AddExpensesForUserActivity : AppCompatActivity() {
                                     expenseAdapter.notifyItemChanged(position)
                                     updateTotalSum()
                                 } else {
+                                    showError("Ошибка обновления количества")
                                 }
                             }
                         }
@@ -251,6 +272,12 @@ class AddExpensesForUserActivity : AppCompatActivity() {
                 it.startAnimation(clickAnimation)
             }
         }
+        val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
+        proflBtn.setOnClickListener {
+            startActivity(Intent(this, UserProfileActivity::class.java))
+            proflBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
     }
 
     private inner class UserAdapter(private val users: List<User>) : RecyclerView.Adapter<UserAdapter.ViewHolder>() {
@@ -261,6 +288,7 @@ class AddExpensesForUserActivity : AppCompatActivity() {
             val userPhoto: ImageView = itemView.findViewById(R.id.userPhoto)
             val addButton: ImageButton = itemView.findViewById(R.id.addFriendBtn)
             val markContactBtn: CheckBox = itemView.findViewById(R.id.markContactBtn)
+            val payButton: AppCompatButton = itemView.findViewById(R.id.payUsers)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -280,9 +308,32 @@ class AddExpensesForUserActivity : AppCompatActivity() {
                 .into(holder.userPhoto)
             holder.addButton.visibility = View.GONE
             holder.markContactBtn.visibility = View.GONE
+
+            // Настройка кнопки оплаты
+            holder.payButton.visibility = if (!isUserPayed) View.VISIBLE else View.GONE
+            if (!isUserPayed) {
+                holder.payButton.setOnClickListener {
+                    updatePaymentStatus(true)
+                    holder.payButton.setBackgroundResource(R.drawable.btn_back_btn_bg)
+                    holder.payButton.visibility = View.GONE
+                }
+            }
         }
 
         override fun getItemCount() = users.size
+    }
+
+    private fun updatePaymentStatus(payed: Boolean) {
+        database.child("Groups").child(groupId).child("PayUsers").child(userId)
+            .setValue(payed)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    isUserPayed = payed
+                    Toast.makeText(this, "Статус оплаты обновлен", Toast.LENGTH_SHORT).show()
+                } else {
+                    showError("Ошибка обновления статуса оплаты")
+                }
+            }
     }
 
     private inner class ExpenseAdapter(

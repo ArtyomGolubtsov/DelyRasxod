@@ -73,6 +73,13 @@ class ContactInfoActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
         }
 
+        val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
+        proflBtn.setOnClickListener {
+            startActivity(Intent(this, UserProfileActivity::class.java))
+            proflBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
+
         val groupsBtn: LinearLayout = findViewById(R.id.groupsBtn)
         groupsBtn.setOnClickListener {
             startActivity(Intent(this, GroupsActivity::class.java))

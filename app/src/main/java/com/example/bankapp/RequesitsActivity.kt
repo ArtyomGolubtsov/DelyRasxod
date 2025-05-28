@@ -124,6 +124,12 @@ class RequesitsActivity : AppCompatActivity() {
                 it.startAnimation(clickAnimation)
             }
         }
+        val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
+        proflBtn.setOnClickListener {
+            startActivity(Intent(this, UserProfileActivity::class.java))
+            proflBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
     }
 
     private fun loadUserData() {
@@ -195,10 +201,11 @@ class RequesitsActivity : AppCompatActivity() {
         database.getReference("Groups").child(groupId).child("PayUsers").child(userId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val hasPaid = snapshot.getValue(Boolean::class.java) == true || snapshot.getValue(Boolean::class.java) == false
+                    // Проверяем, существует ли запись и её значение
+                    val paymentStatus = snapshot.getValue(Boolean::class.java)
 
-                    if (hasPaid) {
-                        // Если пользователь уже оплатил, изменяем текст и фон кнопки
+                    if (paymentStatus != null) { // или if (snapshot.exists())
+                        // Если запись существует (пользователь уже платил)
                         paymentBtn.text = "Вы уже оплатили"
                         paymentBtn.isEnabled = false
                         paymentBtn.setBackgroundResource(R.drawable.btn_back_btn_bg)
@@ -230,7 +237,6 @@ class RequesitsActivity : AppCompatActivity() {
                                         Toast.makeText(this@RequesitsActivity, "Платеж подтвержден", Toast.LENGTH_SHORT).show()
                                         paymentBtn.text = "Вы уже оплатили"
                                         paymentBtn.isEnabled = false
-
 
 
                                         finish()

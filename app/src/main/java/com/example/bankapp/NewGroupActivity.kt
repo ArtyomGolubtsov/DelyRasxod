@@ -225,6 +225,13 @@ class NewGroupActivity : AppCompatActivity() {
             mainBtn.startAnimation(clickAnimation)
         }
 
+        val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
+        proflBtn.setOnClickListener {
+            startActivity(Intent(this, UserProfileActivity::class.java))
+            proflBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
+
         val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)
         contactsBtn.setOnClickListener {
             startActivity(Intent(this, ContactActivity::class.java))

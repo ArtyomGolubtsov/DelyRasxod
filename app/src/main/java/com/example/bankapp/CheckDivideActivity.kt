@@ -49,6 +49,11 @@ class CheckDivideActivity : AppCompatActivity() {
         expensesList.layoutManager = LinearLayoutManager(this)
         expenseAdapter = ExpenseAdapter(expenseItems)
         expensesList.adapter = expenseAdapter
+        val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
+        proflBtn.setOnClickListener {
+            startActivity(Intent(this, UserProfileActivity::class.java))
+            overridePendingTransition(0, 0)
+        }
 
         loadExpenses()
 

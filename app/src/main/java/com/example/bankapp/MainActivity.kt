@@ -165,6 +165,13 @@ class MainActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
         }
 
+        val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
+        proflBtn.setOnClickListener {
+            startActivity(Intent(this, UserProfileActivity::class.java))
+            proflBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
+
         val searchContactsBtn: ImageButton = findViewById(R.id.searchBtn)
         searchContactsBtn.setOnClickListener {
             val intent = Intent(this, SearchActivity::class.java)

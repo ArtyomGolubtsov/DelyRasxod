@@ -78,6 +78,12 @@ class GroupInfoActivity : AppCompatActivity() {
             contactsBtn.startAnimation(clickAnimation)
             overridePendingTransition(0, 0)
         }
+        val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
+        proflBtn.setOnClickListener {
+            startActivity(Intent(this, UserProfileActivity::class.java))
+            proflBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
 
         database = FirebaseDatabase.getInstance().reference
 
