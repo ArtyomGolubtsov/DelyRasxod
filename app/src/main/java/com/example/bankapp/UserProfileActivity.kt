@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ImageButton
@@ -16,6 +17,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bumptech.glide.Glide
@@ -54,13 +56,16 @@ class UserProfileActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance().reference
         storage = FirebaseStorage.getInstance()
-
+        val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
         // Инициализация элементов интерфейса
         userName = findViewById(R.id.userName)
         userEmail = findViewById(R.id.userEmail)
         userPhone = findViewById(R.id.userPhone)
         userBank = findViewById(R.id.userBank)
         userPhoto = findViewById(R.id.userPhoto)
+        window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
+        downmenu()
 
         // Загрузка данных пользователя
         loadUserData()
@@ -71,17 +76,24 @@ class UserProfileActivity : AppCompatActivity() {
         // Обработчики кликов
         findViewById<ImageButton>(R.id.editProfileBtn).setOnClickListener {
             startActivity(Intent(this, PersonalUserInfoActivity::class.java))
+            overridePendingTransition(0, 0)
+
         }
 
         findViewById<LinearLayout>(R.id.personalInfoBox).setOnClickListener {
             startActivity(Intent(this, PersonalUserInfoActivity::class.java))
+            overridePendingTransition(0, 0)
         }
 
         userPhone.setOnClickListener {
             startActivity(Intent(this, PersonalUserInfoActivity::class.java))
+            overridePendingTransition(0, 0)
+            userPhone.startAnimation(clickAnimation)
         }
 
         userPhoto.setOnClickListener {
+            overridePendingTransition(0, 0)
+            userPhoto.startAnimation(clickAnimation)
             openGallery()
         }
 
@@ -96,6 +108,44 @@ class UserProfileActivity : AppCompatActivity() {
             insets
         }
     }
+
+    fun downmenu()
+    {
+        val ptofilico: ImageView = findViewById(R.id.profileBtnIcon)
+        val profilTxtBtn: TextView = findViewById(R.id.profileBtnText)
+        profilTxtBtn.setTextColor(ContextCompat.getColor(this, R.color.dely_blue))
+        ptofilico.setImageResource(R.drawable.ic_person_outline_active)
+
+        val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
+        val mainBtn: LinearLayout = findViewById(R.id.homeBtn)
+        mainBtn.setOnClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
+            overridePendingTransition(0, 0)
+            mainBtn.startAnimation(clickAnimation)
+        }
+
+        val groupsBtn: LinearLayout = findViewById(R.id.groupsBtn)
+        groupsBtn.setOnClickListener {
+            startActivity(Intent(this, GroupsActivity::class.java))
+            groupsBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
+
+        val contactsBtn: LinearLayout = findViewById(R.id.contactsBtn)
+        contactsBtn.setOnClickListener {
+            startActivity(Intent(this, ContactActivity::class.java))
+            contactsBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
+
+        val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
+        proflBtn.setOnClickListener {
+            startActivity(Intent(this, UserProfileActivity::class.java))
+            proflBtn.startAnimation(clickAnimation)
+            overridePendingTransition(0, 0)
+        }
+    }
+
 
     private fun loadUserData() {
         val currentUser = auth.currentUser

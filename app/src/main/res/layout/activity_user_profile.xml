@@ -141,9 +141,12 @@
                 android:background="@drawable/add_purchase_input_bg"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="5dp"
+                android:focusable="false"
+                android:clickable="true"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -25,6 +25,7 @@ class CheckDivideActivity : AppCompatActivity() {
     private lateinit var expensesList: RecyclerView
     private lateinit var expenseAdapter: ExpenseAdapter
     private val expenseItems = mutableListOf<ExpenseItem>()
+    private lateinit var depositPhoneTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +50,9 @@ class CheckDivideActivity : AppCompatActivity() {
         expensesList.layoutManager = LinearLayoutManager(this)
         expenseAdapter = ExpenseAdapter(expenseItems)
         expensesList.adapter = expenseAdapter
+
+        depositPhoneTextView = findViewById(R.id.depositPhone)
+
         val proflBtn: LinearLayout = findViewById(R.id.profileBtn)
         proflBtn.setOnClickListener {
             startActivity(Intent(this, UserProfileActivity::class.java))
@@ -56,6 +60,7 @@ class CheckDivideActivity : AppCompatActivity() {
         }
 
         loadExpenses()
+        loadAdminPhoneNumber()
 
         val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
 
@@ -106,6 +111,52 @@ class CheckDivideActivity : AppCompatActivity() {
 
                 override fun onCancelled(error: DatabaseError) {}
             })
+    }
+
+    private fun loadAdminPhoneNumber() {
+        if (groupId == null) return
+
+        val dbRef = FirebaseDatabase.getInstance().reference
+        // Шаг 1: Получаем ID администратора группы
+        dbRef.child("Groups").child(groupId!!).child("admin")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(adminSnapshot: DataSnapshot) {
+                    val adminId = adminSnapshot.getValue(String::class.java)
+                    if (adminId != null) {
+                        // Шаг 2: Получаем номер телефона администратора
+                        dbRef.child("Users").child(adminId).child("phone")
+                            .addListenerForSingleValueEvent(object : ValueEventListener {
+                                override fun onDataChange(phoneSnapshot: DataSnapshot) {
+                                    val phoneNumber = phoneSnapshot.getValue(String::class.java)
+                                    phoneNumber?.let {
+                                        depositPhoneTextView.text = formatPhoneNumber(it)
+                                    } ?: run {
+                                        depositPhoneTextView.text = "Номер не указан"
+                                    }
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                    depositPhoneTextView.text = "Ошибка загрузки"
+                                }
+                            })
+                    } else {
+                        depositPhoneTextView.text = "Админ не найден"
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    depositPhoneTextView.text = "Ошибка загрузки"
+                }
+            })
+    }
+
+    private fun formatPhoneNumber(phone: String): String {
+        // Простая форматировка номера телефона
+        return if (phone.length == 11 && phone.startsWith("8")) {
+            "+7 (${phone.substring(1, 4)}) ${phone.substring(4, 7)}-${phone.substring(7, 9)}-${phone.substring(9)}"
+        } else {
+            phone
+        }
     }
 
     data class ExpenseItem(val name: String, val price: Double, val quantity: Double)
