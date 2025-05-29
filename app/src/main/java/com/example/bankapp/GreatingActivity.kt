@@ -2,6 +2,8 @@ package com.example.bankapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.animation.AnimationUtils
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
@@ -17,6 +19,7 @@ class GreatingActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var database: FirebaseDatabase
     private lateinit var usersReference: DatabaseReference
+    private lateinit var politicy: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,11 +29,22 @@ class GreatingActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance() // Получаем экземпляр FirebaseDatabase
         usersReference = database.getReference("Users") // Получаем ссылку на "Users"
-        //FirebaseAuth.getInstance().signOut()
+
         // Проверка пользователя на зарегистрированность
         val currentUser = auth.currentUser
         if (currentUser == null) {
             setContentView(R.layout.activity_greating) // Устанавливаем разметку
+
+            // Теперь ищем представления после установки разметки
+            politicy = findViewById(R.id.policyBtn)
+            val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
+
+            politicy.setOnClickListener {
+                politicy.startAnimation(clickAnimation)
+                startActivity(Intent(this, PolicyActivity::class.java))
+                overridePendingTransition(0, 0)
+            }
+
             setupViews() // Инициализация и настройка кнопок после установки разметки
         } else {
             val intent = Intent(this, EntryPINActivity::class.java)
@@ -38,6 +52,7 @@ class GreatingActivity : AppCompatActivity() {
             finish() // Закрываем текущую активность, чтобы предотвратить возврат
         }
     }
+
 
     private fun setupViews() {
         // Инициализация кнопок

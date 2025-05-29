@@ -41,6 +41,7 @@ class UserProfileActivity : AppCompatActivity() {
     private lateinit var userPhone: EditText
     private lateinit var userBank: Spinner
     private lateinit var userPhoto: ImageView
+    private lateinit var policyBtn: LinearLayout
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -66,6 +67,7 @@ class UserProfileActivity : AppCompatActivity() {
         userPhone = findViewById(R.id.userPhone)
         userBank = findViewById(R.id.userBank)
         userPhoto = findViewById(R.id.userPhoto)
+        policyBtn = findViewById(R.id.policyBox)
         window.navigationBarColor = ContextCompat.getColor(this, R.color.app_bg)
         window.statusBarColor = ContextCompat.getColor(this, R.color.app_bg)
         downmenu()
@@ -97,6 +99,13 @@ class UserProfileActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
             userPhoto.startAnimation(clickAnimation)
             openGallery()
+        }
+
+        policyBtn.setOnClickListener {
+            overridePendingTransition(0, 0)
+            policyBtn.startAnimation(clickAnimation)
+            startActivity(Intent(this, PolicyActivity::class.java))
+            overridePendingTransition(0, 0)
         }
 
         // Обработка нажатия кнопки назад

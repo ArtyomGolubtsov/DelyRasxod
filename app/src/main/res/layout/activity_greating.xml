@@ -84,6 +84,18 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <TextView
+        android:id="@+id/policyBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Политика конфеденциальности"
+        android:layout_marginBottom="40dp"
+        android:scrollbarSize="16sp"
+        android:focusedSearchResultHighlightColor="@color/polycy_tips"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <ImageView
         android:id="@+id/ellipse1"
         android:layout_width="400dp"
