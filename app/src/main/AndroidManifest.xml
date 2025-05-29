@@ -26,6 +26,9 @@
         <activity android:name=".ResetPasswordActivity"/>
         <activity android:name=".PolicyActivity"/>
         <activity
+            android:name=".PolicyActivity"
+            android:exported="false" />
+        <activity
             android:name=".PersonalUserInfoActivity"
             android:exported="false" />
         <activity

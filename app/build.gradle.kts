@@ -8,6 +8,10 @@ android {
     namespace = "com.example.bankapp"
     compileSdk = 35
 
+    viewBinding {
+        enable = true
+    }
+
     defaultConfig {
         applicationId = "com.example.bankapp"
         minSdk = 26

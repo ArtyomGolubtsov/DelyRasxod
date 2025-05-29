@@ -20,6 +20,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -147,6 +148,13 @@ class MainActivity : AppCompatActivity() {
         val mainBtn: LinearLayout = findViewById(R.id.homeBtn)
         mainBtn.setOnClickListener {
             startActivity(Intent(this, MainActivity::class.java))
+            overridePendingTransition(0, 0)
+            mainBtn.startAnimation(clickAnimation)
+        }
+
+        val productsBtn: ConstraintLayout = findViewById(R.id.productsBtn)
+        productsBtn.setOnClickListener {
+            startActivity(Intent(this, RecommendProductsActivity::class.java))
             overridePendingTransition(0, 0)
             mainBtn.startAnimation(clickAnimation)
         }

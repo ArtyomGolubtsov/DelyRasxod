@@ -44,7 +44,6 @@ class RequesitsActivity : AppCompatActivity() {
         val price: Int,
         val quantity: Int
     )
-//TODO ёдоделать сохранение пользователя при оплате
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

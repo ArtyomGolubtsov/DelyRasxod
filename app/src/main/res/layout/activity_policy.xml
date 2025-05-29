@@ -41,16 +41,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
-        <ImageButton
-            android:id="@+id/editProfileBtn"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:background="@drawable/keyboard_btn_bg"
-            android:src="@drawable/ic_confirm"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ScrollView
