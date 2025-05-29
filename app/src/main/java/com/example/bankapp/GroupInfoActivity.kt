@@ -1,6 +1,6 @@
 package com.example.bankapp
 
-import android.app.Dialog
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -10,16 +10,17 @@ import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.ViewCompat
@@ -45,12 +46,19 @@ class GroupInfoActivity : AppCompatActivity() {
     private lateinit var database: DatabaseReference
     private lateinit var groupName: TextView
     private lateinit var groupImage: ImageView
+    private lateinit var auth: FirebaseAuth
+    private var isAdmin = false
+    private var groupId: String? = null
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_group_info)
+
+        auth = FirebaseAuth.getInstance()
+        database = FirebaseDatabase.getInstance().reference
+        groupId = intent.getStringExtra("GROUP_ID")
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -85,14 +93,10 @@ class GroupInfoActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
         }
 
-        database = FirebaseDatabase.getInstance().reference
-
         groupName = findViewById(R.id.mainTitle)
         groupImage = findViewById(R.id.groupImage)
         val menuButton: ImageButton = findViewById(R.id.actionGroupBurger)
 
-
-        val groupId = intent.getStringExtra("GROUP_ID") ?: "Неизвестный ID"
         loadGroupData(groupId)
 
         val btnGoBack: ImageButton = findViewById(R.id.btnGoBack)
@@ -103,51 +107,14 @@ class GroupInfoActivity : AppCompatActivity() {
         }
 
         menuButton.setOnClickListener {
-            val popupMenu = PopupMenu(this, menuButton)
-            popupMenu.menuInflater.inflate(R.menu.action_group_menu, popupMenu.menu)
-            val deleteMenuItem = popupMenu.menu.findItem(R.id.deleteGroupBtn)
-            val spannableString = SpannableString(deleteMenuItem.title)
-            spannableString.setSpan(
-                ForegroundColorSpan(ContextCompat.getColor(this, R.color.alert_red)),
-                0, spannableString.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE
-            )
-            deleteMenuItem.title = spannableString
-
-            val deleteIcon = deleteMenuItem.icon
-            if (deleteIcon != null) {
-                val wrappedIcon = DrawableCompat.wrap(deleteIcon)
-                DrawableCompat.setTint(wrappedIcon, ContextCompat.getColor(this, R.color.alert_red))
-                deleteMenuItem.icon = wrappedIcon
-            }
-
-            popupMenu.setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    R.id.editGroupBtn -> {
-                        val intent = Intent(this, NewGroupActivity::class.java)
-                        intent.putExtra("GROUP_ID", groupId) // Передача ID группы
-                        startActivity(intent)
-                        true
-                    }
-                    R.id.exitGroupBtn -> {
-                        showExitGroupDialog()
-                        true
-                    }
-                    R.id.deleteGroupBtn -> {
-                        // Обработка удаления группы
-                        true
-                    }
-                    else -> false
-                }
-            }
-            popupMenu.setForceShowIcon(true)
-            popupMenu.show()
+            showGroupMenu(menuButton)
         }
 
         tabLayout = findViewById(R.id.tabLayout)
         viewPager = findViewById(R.id.viewPager)
-        adapter = ViewPagerAdapterGroupInfo(this, groupId)
+        adapter = ViewPagerAdapterGroupInfo(this, groupId ?: "")
 
-        val groupInfoFragment = GroupInfoFragment.newInstance(groupId)
+        val groupInfoFragment = GroupInfoFragment.newInstance(groupId ?: "")
         adapter.addFragment(groupInfoFragment)
         viewPager.adapter = adapter
 
@@ -181,9 +148,228 @@ class GroupInfoActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadGroupData(groupId: String) {
+    private fun showGroupMenu(anchor: ImageButton) {
+        val popupMenu = PopupMenu(this, anchor)
+        popupMenu.menuInflater.inflate(R.menu.action_group_menu, popupMenu.menu)
+
+        // Проверяем, является ли пользователь админом
+        checkAdminStatus { isAdmin ->
+            this.isAdmin = isAdmin
+
+            // Скрываем/показываем пункты меню в зависимости от статуса
+            popupMenu.menu.findItem(R.id.editGroupBtn).isVisible = isAdmin
+            popupMenu.menu.findItem(R.id.deleteGroupBtn).isVisible = isAdmin
+            popupMenu.menu.findItem(R.id.exitGroupBtn).isVisible = !isAdmin
+
+            // Настройка цвета для кнопки удаления
+            val deleteMenuItem = popupMenu.menu.findItem(R.id.deleteGroupBtn)
+            val spannableString = SpannableString(deleteMenuItem.title)
+            spannableString.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(this, R.color.alert_red)),
+                0, spannableString.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE
+            )
+            deleteMenuItem.title = spannableString
+
+            val deleteIcon = deleteMenuItem.icon
+            if (deleteIcon != null) {
+                val wrappedIcon = DrawableCompat.wrap(deleteIcon)
+                DrawableCompat.setTint(wrappedIcon, ContextCompat.getColor(this, R.color.alert_red))
+                deleteMenuItem.icon = wrappedIcon
+            }
+
+            popupMenu.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.editGroupBtn -> {
+                        val intent = Intent(this, NewGroupActivity::class.java)
+                        intent.putExtra("GROUP_ID", groupId)
+                        startActivity(intent)
+                        true
+                    }
+                    R.id.exitGroupBtn -> {
+                        showExitGroupDialog()
+                        true
+                    }
+                    R.id.deleteGroupBtn -> {
+                        showDeleteGroupDialog()
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popupMenu.setForceShowIcon(true)
+            popupMenu.show()
+        }
+    }
+
+    private fun checkAdminStatus(callback: (Boolean) -> Unit) {
+        val currentUserId = auth.currentUser?.uid
+        if (currentUserId == null || groupId == null) {
+            callback(false)
+            return
+        }
+
+        database.child("Groups").child(groupId!!).child("admin")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val adminId = snapshot.getValue(String::class.java)
+                    callback(adminId == currentUserId)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    callback(false)
+                }
+            })
+    }
+
+    private fun showDeleteGroupDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.exit_group_window, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val title = dialogView.findViewById<TextView>(R.id.windowTitle)
+        title.text = "Вы уверены, что хотите удалить группу?"
+
+        dialogView.findViewById<AppCompatButton>(R.id.cancelBtn).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<AppCompatButton>(R.id.exitBtn).setOnClickListener {
+            deleteGroup()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun deleteGroup() {
+        if (groupId == null) return
+
+        // 1. Получаем список всех пользователей группы
+        database.child("Groups").child(groupId!!).child("Users")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(usersSnapshot: DataSnapshot) {
+                    // 2. Для каждого пользователя удаляем группу из его списка
+                    for (userSnapshot in usersSnapshot.children) {
+                        val userId = userSnapshot.key ?: continue
+
+                        // 3. Проверяем есть ли у пользователя продукты в этой группе
+                        database.child("Groups").child(groupId!!).child("Users").child(userId)
+                            .addListenerForSingleValueEvent(object : ValueEventListener {
+                                override fun onDataChange(userProductsSnapshot: DataSnapshot) {
+                                    if (userProductsSnapshot.hasChildren()) {
+                                        // 4. Если есть продукты - переносим их в EatCheck
+                                        val productsMap = mutableMapOf<String, Any>()
+                                        for (productSnapshot in userProductsSnapshot.children) {
+                                            productsMap[productSnapshot.key!!] = productSnapshot.value!!
+                                        }
+
+                                        database.child("Groups").child(groupId!!).child("EatCheck")
+                                            .updateChildren(productsMap)
+                                    }
+
+                                    // 5. Удаляем группу у пользователя
+                                    database.child("Users").child(userId).child("Groups").child(groupId!!)
+                                        .removeValue()
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                    Toast.makeText(this@GroupInfoActivity, "Ошибка при переносе продуктов", Toast.LENGTH_SHORT).show()
+                                }
+                            })
+                    }
+
+                    // 6. Удаляем саму группу
+                    database.child("Groups").child(groupId!!).removeValue()
+                        .addOnSuccessListener {
+                            Toast.makeText(this@GroupInfoActivity, "Группа удалена", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this@GroupInfoActivity, GroupsActivity::class.java))
+                            finish()
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(this@GroupInfoActivity, "Ошибка удаления группы", Toast.LENGTH_SHORT).show()
+                        }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@GroupInfoActivity, "Ошибка получения пользователей", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    private fun showExitGroupDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.exit_group_window, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val title = dialogView.findViewById<TextView>(R.id.windowTitle)
+        title.text = "Вы уверены, что хотите выйти из группы?"
+
+        dialogView.findViewById<AppCompatButton>(R.id.cancelBtn).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<AppCompatButton>(R.id.exitBtn).setOnClickListener {
+            exitFromGroup()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun exitFromGroup() {
+        val currentUserId = auth.currentUser?.uid
+        if (currentUserId == null || groupId == null) return
+
+        // 1. Проверяем есть ли у пользователя продукты в этой группе
+        database.child("Groups").child(groupId!!).child("Users").child(currentUserId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(userProductsSnapshot: DataSnapshot) {
+                    if (userProductsSnapshot.hasChildren()) {
+                        // 2. Если есть продукты - переносим их в EatCheck
+                        val productsMap = mutableMapOf<String, Any>()
+                        for (productSnapshot in userProductsSnapshot.children) {
+                            productsMap[productSnapshot.key!!] = productSnapshot.value!!
+                        }
+
+                        database.child("Groups").child(groupId!!).child("EatCheck")
+                            .updateChildren(productsMap)
+                    }
+
+                    // 3. Удаляем пользователя из группы
+                    database.child("Groups").child(groupId!!).child("Users").child(currentUserId)
+                        .removeValue()
+                        .addOnSuccessListener {
+                            // 4. Удаляем группу у пользователя
+                            database.child("Users").child(currentUserId).child("Groups").child(groupId!!)
+                                .removeValue()
+                                .addOnSuccessListener {
+                                    Toast.makeText(this@GroupInfoActivity, "Вы вышли из группы", Toast.LENGTH_SHORT).show()
+                                    startActivity(Intent(this@GroupInfoActivity, GroupsActivity::class.java))
+                                    finish()
+                                }
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(this@GroupInfoActivity, "Ошибка выхода из группы", Toast.LENGTH_SHORT).show()
+                        }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@GroupInfoActivity, "Ошибка при переносе продуктов", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    private fun loadGroupData(groupId: String?) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
-        if (userId != null) {
+        if (userId != null && groupId != null) {
             database.child("Groups").child(groupId)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
@@ -227,26 +413,6 @@ class GroupInfoActivity : AppCompatActivity() {
         isPageChangeProgrammatic = true
         viewPager.setCurrentItem(1, true)
         isPageChangeProgrammatic = false
-    }
-
-    private fun showExitGroupDialog() {
-        val groupId = intent.getStringExtra("GROUP_ID")
-
-        if (groupId != null) {
-            val exitGroupDialogFragment = ExitGroupDialogFragment.newInstance(groupId)
-
-            exitGroupDialogFragment.setExitGroupListener(object : ExitGroupDialogFragment.ExitGroupListener {
-                override fun onExitConfirmed() {
-                    // Ничего делать здесь не надо — переход в GroupsActivity уже будет в самом фрагменте
-                }
-
-                override fun onExitCancelled() {
-                    // Просто закроется диалог
-                }
-            })
-
-            exitGroupDialogFragment.show(supportFragmentManager, "ExitGroupDialog")
-        }
     }
 
     private fun openActivity(targetActivity: Class<*>) {

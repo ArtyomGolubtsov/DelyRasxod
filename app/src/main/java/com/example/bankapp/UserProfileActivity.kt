@@ -1,6 +1,7 @@
 package com.example.bankapp
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -17,6 +18,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -57,6 +59,7 @@ class UserProfileActivity : AppCompatActivity() {
         database = FirebaseDatabase.getInstance().reference
         storage = FirebaseStorage.getInstance()
         val clickAnimation = AnimationUtils.loadAnimation(this, R.anim.keyboardfirst)
+
         // Инициализация элементов интерфейса
         userName = findViewById(R.id.userName)
         userEmail = findViewById(R.id.userEmail)
@@ -77,7 +80,6 @@ class UserProfileActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.editProfileBtn).setOnClickListener {
             startActivity(Intent(this, PersonalUserInfoActivity::class.java))
             overridePendingTransition(0, 0)
-
         }
 
         findViewById<LinearLayout>(R.id.personalInfoBox).setOnClickListener {
@@ -99,7 +101,19 @@ class UserProfileActivity : AppCompatActivity() {
 
         // Обработка нажатия кнопки назад
         findViewById<ImageButton>(R.id.btnGoBack).setOnClickListener {
+            overridePendingTransition(0, 0)
             finish()
+        }
+
+        findViewById<LinearLayout>(R.id.changePassBox).setOnClickListener {
+            openRessetPassword()
+            overridePendingTransition(0, 0)
+        }
+
+        // Обработчик выхода из аккаунта
+        findViewById<LinearLayout>(R.id.quitAccountBox).setOnClickListener {
+            overridePendingTransition(0, 0)
+            showExitConfirmationDialog()
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -107,6 +121,42 @@ class UserProfileActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+    }
+
+    private fun openRessetPassword()
+    {
+        startActivity(Intent(this, ResetPasswordActivity::class.java))
+        overridePendingTransition(0, 0)
+    }
+
+
+    private fun showExitConfirmationDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.exit_group_window, null)
+        val dialog = AlertDialog.Builder(this, R.style.AlertDialogCustom)
+            .setView(dialogView)
+            .setCancelable(true)
+            .create()
+
+        // Настройка прозрачного фона
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<AppCompatButton>(R.id.cancelBtn).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<AppCompatButton>(R.id.exitBtn).setOnClickListener {
+            signOut()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun signOut() {
+        auth.signOut()
+        startActivity(Intent(this, GreatingActivity::class.java))
+        overridePendingTransition(0, 0)
+        finishAffinity() // Закрывает все активности в стеке
     }
 
     fun downmenu()
@@ -185,7 +235,22 @@ class UserProfileActivity : AppCompatActivity() {
     }
 
     private fun setupBankSpinner() {
-        val banks = listOf("Т-Банк", "Сбер", "ЦентрИнвест", "АльфаБанк")
+        val banks = listOf(
+            "ЦентрИнвест",
+            "Т-Банк",
+            "Сбер",
+            "АльфаБанк",
+            "ВТБ",
+            "Россельхозбанк",
+            "Промсвязьбанк",
+            "РТСБ",
+            "Открытие",
+            "Газпромбанк",
+            "ЮниКредит Банк",
+            "Хоум Кредит",
+            "Совкомбанк"
+        )
+
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, banks)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         userBank.adapter = adapter
