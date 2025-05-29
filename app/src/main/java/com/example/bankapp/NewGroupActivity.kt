@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -282,6 +283,22 @@ class NewGroupActivity : AppCompatActivity() {
         }
     }
 
+    private fun showLoading() {
+        findViewById<FrameLayout>(R.id.loadingOverlay).visibility = View.VISIBLE
+        // Блокируем кнопки на время загрузки
+        findViewById<AppCompatButton>(R.id.continueBtn).isEnabled = false
+        findViewById<AppCompatButton>(R.id.CancelBtn).isEnabled = false
+        findViewById<ImageButton>(R.id.btnGoBack).isEnabled = false
+    }
+
+    private fun hideLoading() {
+        findViewById<FrameLayout>(R.id.loadingOverlay).visibility = View.GONE
+        // Разблокируем кнопки после загрузки
+        findViewById<AppCompatButton>(R.id.continueBtn).isEnabled = true
+        findViewById<AppCompatButton>(R.id.CancelBtn).isEnabled = true
+        findViewById<ImageButton>(R.id.btnGoBack).isEnabled = true
+    }
+
     private fun launchImagePicker() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, PICK_IMAGE_REQUEST)
@@ -372,6 +389,8 @@ class NewGroupActivity : AppCompatActivity() {
     }
 
     private fun updateExistingGroup(groupId: String, title: String, description: String) {
+        showLoading() // Показываем индикатор
+
         val updates = hashMapOf<String, Any>(
             "title" to title,
             "description" to description,
@@ -387,8 +406,12 @@ class NewGroupActivity : AppCompatActivity() {
                 imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
                     updates["imageUri"] = downloadUrl.toString()
                     saveGroupUpdates(groupId, updates)
+                }.addOnFailureListener {
+                    hideLoading()
+                    Toast.makeText(this, "Ошибка при получении ссылки на изображение", Toast.LENGTH_SHORT).show()
                 }
             }.addOnFailureListener {
+                hideLoading()
                 Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
             }
         } else {
@@ -400,6 +423,7 @@ class NewGroupActivity : AppCompatActivity() {
         FirebaseDatabase.getInstance().getReference("Groups/$groupId")
             .updateChildren(updates)
             .addOnSuccessListener {
+                hideLoading()
                 Toast.makeText(this, "Изменения сохранены", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, GroupInfoActivity::class.java).apply {
                     putExtra("GROUP_ID", groupId)
@@ -408,11 +432,14 @@ class NewGroupActivity : AppCompatActivity() {
                 finish()
             }
             .addOnFailureListener {
+                hideLoading()
                 Toast.makeText(this, "Ошибка при сохранении изменений", Toast.LENGTH_SHORT).show()
             }
     }
 
     private fun createNewGroup(title: String, description: String) {
+        showLoading() // Показываем индикатор
+
         val imageHash = hashString(imageUri.toString())
         val storageRef = FirebaseStorage.getInstance().reference
         val imageRef = storageRef.child("group_images/${imageHash}.jpg")
@@ -437,19 +464,33 @@ class NewGroupActivity : AppCompatActivity() {
                                 FirebaseDatabase.getInstance().getReference("Groups/$groupId/Users/$userId")
                                     .setValue(true)
                                     .addOnSuccessListener {
+                                        hideLoading()
                                         Toast.makeText(this, "Группа успешно создана", Toast.LENGTH_SHORT).show()
                                         val intent = Intent(this, GroupMembersChoiceActivity::class.java)
                                         intent.putExtra("GROUP_ID", groupId)
                                         startActivity(intent)
                                         overridePendingTransition(0, 0)
                                     }
+                                    .addOnFailureListener {
+                                        hideLoading()
+                                        Toast.makeText(this, "Ошибка при добавлении участников", Toast.LENGTH_SHORT).show()
+                                    }
+                            }
+                            .addOnFailureListener {
+                                hideLoading()
+                                Toast.makeText(this, "Ошибка при связывании группы с пользователем", Toast.LENGTH_SHORT).show()
                             }
                     }
                     .addOnFailureListener {
+                        hideLoading()
                         Toast.makeText(this, "Ошибка при создании группы", Toast.LENGTH_SHORT).show()
                     }
+            }.addOnFailureListener {
+                hideLoading()
+                Toast.makeText(this, "Ошибка при получении ссылки на изображение", Toast.LENGTH_SHORT).show()
             }
         }.addOnFailureListener {
+            hideLoading()
             Toast.makeText(this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show()
         }
     }
